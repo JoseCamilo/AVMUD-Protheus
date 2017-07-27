@@ -170,3 +170,18 @@ Itens do escopo que ainda precisamos desenvolver:
 - Um metodo Rest do Verbo Get que, receba o nome de um campo que contenha Gatilho e o numero de Sequencia do gatilho, e verifica a existencia do gatilho. Retorno logico.
 - Um metodo Rest do verbo Get que, retorna um registro do SX7, para ser usado no item abaixo:
 - Um metodo Rest do Verbo Get que, receba o endereço de 1 base Protheus(base que tem o gatilho atualizado) e o nome de um campo que contenha Gatilho e o numero de Sequencia do gatilho, busque o gatilho na base passada(usando o rest acima) e grave na base corrente. Retorno logico.
+
+##### Consulta padrão
+- Um metodo Rest do Verbo Get que, receba o nome de uma consulta padrão, e verifica sua existencia no ambiente. Retorno logico.
+- Um metodo Rest do verbo Get que, retorna o dicionario de uma consulta padrão, para ser usado no item abaixo:
+- Um metodo Rest do Verbo Get que, receba o endereço de 1 base Protheus(base que tem a consulta padrao atualizada) e o nome da consulta padrão, busque a consulta padrao na base passada(usando o rest acima) e grave na base corrente. Retorno logico.
+
+##### Indice
+- Um metodo Rest do Verbo Get que, receba o nome de uma tabela e o numero ou apelido de um indice, e verifica a existencia do indice fisicamente na tabela. Retorno logico.
+
+##### .Dbf
+- Um metodo Rest do Verbo Get que, receba o nome de uma ou  mais tabelas, e crie um .dbf baseado no dicionario SX2
+- Um metodo Rest do Verbo Get que, receba o nome de um ou mais campos, e crie um .dbf baseado no dicionario SX3
+- Um metodo Rest do Verbo Get que, receba o nome de um ou mais indices, e crie um .dbf baseado no dicionario SIX
+- Um metodo Rest do Verbo Get que, receba o nome de um ou mais parametros, e crie um .dbf baseado no dicionario SX6
+- Um metodo Rest do Verbo Get que, receba o nome e sequencia de um ou mais gatilhos, e crie um .dbf baseado no dicionario SX7
