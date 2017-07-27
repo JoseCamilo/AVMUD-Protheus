@@ -180,10 +180,10 @@ Itens do escopo que ainda precisamos desenvolver:
 - Um metodo Rest do Verbo Get que, receba o nome de uma tabela e o numero ou apelido de um indice, e verifica a existencia do indice fisicamente na tabela. Retorno logico.
 
 ##### .Dbf
-- Um metodo Rest do Verbo Get que, receba um diretorio, o nome de uma ou  mais tabelas, e crie um .dbf baseado no dicionario SX2 e salve no diretorio informado.
-- Um metodo Rest do Verbo Get que, receba um diretorio, o nome de um ou mais campos, e crie um .dbf baseado no dicionario SX3 e salve no diretorio informado.
-- Um metodo Rest do Verbo Get que, receba um diretorio, o nome de um ou mais indices, e crie um .dbf baseado no dicionario SIX e salve no diretorio informado.
-- Um metodo Rest do Verbo Get que, receba um diretorio, o nome de um ou mais parametros, e crie um .dbf baseado no dicionario SX6 e salve no diretorio informado.
-- Um metodo Rest do Verbo Get que, receba um diretorio, o nome e sequencia de um ou mais gatilhos, e crie um .dbf baseado no dicionario SX7 e salve no diretorio informado.
-- Um metodo Rest do Verbo Get que, receba um diretorio, o nome de um ou mais pergunte, e crie um .dbf baseado no dicionario SX1 e salve no diretorio informado.
-- Um metodo Rest do Verbo Get que, receba um diretorio, o nome de uma ou mais consulta padrao, e crie um .dbf baseado no dicionario SXB e salve no diretorio informado.
+- Um metodo Rest do Verbo Get que, receba um diretorio e o nome de uma ou  mais tabelas, e crie um .dbf baseado no dicionario SX2 e salve no diretorio informado.
+- Um metodo Rest do Verbo Get que, receba um diretorio e o nome de um ou mais campos, e crie um .dbf baseado no dicionario SX3 e salve no diretorio informado.
+- Um metodo Rest do Verbo Get que, receba um diretorio e o nome de um ou mais indices, e crie um .dbf baseado no dicionario SIX e salve no diretorio informado.
+- Um metodo Rest do Verbo Get que, receba um diretorio e o nome de um ou mais parametros, e crie um .dbf baseado no dicionario SX6 e salve no diretorio informado.
+- Um metodo Rest do Verbo Get que, receba um diretorio e o nome e sequencia de um ou mais gatilhos, e crie um .dbf baseado no dicionario SX7 e salve no diretorio informado.
+- Um metodo Rest do Verbo Get que, receba um diretorio e o nome de um ou mais pergunte, e crie um .dbf baseado no dicionario SX1 e salve no diretorio informado.
+- Um metodo Rest do Verbo Get que, receba um diretorio e o nome de uma ou mais consulta padrao, e crie um .dbf baseado no dicionario SXB e salve no diretorio informado.
