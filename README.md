@@ -143,3 +143,30 @@ changeset - string: Numero de registro do TFS changeSet
     ]
 }
 ``` 
+
+
+# Contribua
+Itens do escopo que ainda precisamos desenvolver:
+##### Tabela
+- Um metodo do verbo Get Rest que verifica se uma tabela, passada na chamada Rest, existe fisicamente no ambiente. Retorno logico.
+- Um metodo do verbo Get Rest que cria uma tabela, passada na chamada Rest, fisicamente, verificando antes da criação a existencia do dicionário desta tabela. Retorno logico sobre a operação.
+
+##### Campo Virtual
+- Um metodo Rest do verbo Get que verifica se um campo virtual, passado na chamada rest, existe no dicionario de dados. Retorno logico.
+- Um metodo Rest do verbo Get que, retorna um registro inteiro do SX3, para ser usado no item abaixo:
+- Um metodo Rest do verbo Get que, receba o endereço de 1 base Protheus(base onde o campo virtual esta criado) e o nome de um campo Virtual, busque o dicionario deste campo na base passada(usando o rest criado acima) e crie na base corrente. Retorno logico.
+
+
+##### Atributo de Campo
+- Um metodo Rest do verbo Get que receba um dado e um campo do X3, e confira no dicionário se o dado está gravado no dicionario no campo do X3. Retorno logico.
+- Um metodo Rest do verbo Get que, retorna o conteudo de um campo de um registro do SX3, para ser usado no item abaixo:
+- Um metodo Rest do Verbo Get que, receba o endereço de 1 base Protheus(base onde o atributo esta correto), o nome do Campo(fisico ou virtual) e o nome de um campo do SX3, busque o conteudo deste campo na base passada(usando o rest acima) e grave na base corrente. Retorno logico.
+
+##### Parametro
+- Um metodo Rest do verbo Get que, retorna um registro do SX6, para ser usado no item abaixo:
+- Um metodo Rest do Verbo Get que, receba o endereço de 1 base Protheus(base que tem o parametro atualizado) e o nome de um parametro, busque o conteudo deste parametro na base passada(usando o rest acima) e grave na base corrente. Retorno logico.
+
+##### Gatilho 
+- Um metodo Rest do Verbo Get que, receba o nome de um campo que contenha Gatilho e o numero de Sequencia do gatilho, e verifica a existencia do gatilho. Retorno logico.
+- Um metodo Rest do verbo Get que, retorna um registro do SX7, para ser usado no item abaixo:
+- Um metodo Rest do Verbo Get que, receba o endereço de 1 base Protheus(base que tem o gatilho atualizado) e o nome de um campo que contenha Gatilho e o numero de Sequencia do gatilho, busque o gatilho na base passada(usando o rest acima) e grave na base corrente. Retorno logico.
