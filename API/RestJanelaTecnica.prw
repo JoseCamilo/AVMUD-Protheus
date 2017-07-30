@@ -299,12 +299,12 @@ EndIf
 Return .T.
 
 //-----------------------------------------------------------------------------
-/*/ {Protheus.doc} Function
+//{Protheus.doc} Function
 
-@author 
-@version 
-@since 
-/*/
+//@author 
+//@version 
+////@since 
+
 //-----------------------------------------------------------------------------
 User Function TListArqTFS(Collection, ChangeSet)
 
@@ -389,12 +389,11 @@ Return aRet
 
 
 //-----------------------------------------------------------------------------
-/*/ {Protheus.doc} Function
 
-@author 
-@version 
-@since 
-/*/
+//@author 
+//@version 
+//@since 
+
 //-----------------------------------------------------------------------------
 User Function TDataArqTFS(cArquivo,cCollection,cChangeSet)
 
