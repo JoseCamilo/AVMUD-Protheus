@@ -157,7 +157,7 @@ alias - string: Nome da Tabela que será verificada
     "result": true,
     "msg": "Tabela existe"
 }
-
+```
 
 # Contribua
 Itens do escopo que ainda precisamos desenvolver:
