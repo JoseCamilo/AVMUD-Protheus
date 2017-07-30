@@ -473,14 +473,168 @@ EndIf
 
 Return aRet
 
+
+
+
+//--------------------------------------------------------
+
+WSRESTFUL VerificaAlias DESCRIPTION "Verifica e cria alias" FORMAT "application/json"
+
+WSDATA Alias 		AS STRING OPTIONAL
+
+WSMETHOD GET  DESCRIPTION "Verifica e cria alias" 	PRODUCES APPLICATION_JSON
+
+END WSRESTFUL
+
+//---------
+WSMETHOD GET  WSRECEIVE Alias WSSERVICE VerificaAlias
+
+Local cError := ""
+Local oError := ErrorBlock({|e| cError := e:Description})
+ 
+Begin Sequence
+    DbSelectArea(::Alias)
+    DBCloseArea()
+End Sequence
+
+ErrorBlock(oError)
+
+If Empty(cError)
+    Self:SetResponse(    '{"result":true , "msg":"Tabela existe"}')
+Else
+    Self:SetResponse(    '{"result":false, "msg":"'+EspecMsg(cError)+'"}')
+EndIf
+
+Return .T.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 // //--------------------------------------------------------
 // //--------------------------------------------------------
 // //--------------------------------------------------------
-// // ESTE EXEMPLO UTILIZA O WS CLIENT COMPILADO
+// // FUNCOES DE APOIO
 // //--------------------------------------------------------
 // //--------------------------------------------------------
 // //--------------------------------------------------------
 
+Static Function EspecMsg(cTexto)
+
+Default cTexto := ""
+
+cTexto := strtran(cTexto, CHR(1), "")   //
+cTexto := strtran(cTexto, CHR(2), "")   //
+cTexto := strtran(cTexto, CHR(3), "")   //
+cTexto := strtran(cTexto, CHR(4), "")   //
+cTexto := strtran(cTexto, CHR(7), "")   //
+cTexto := strtran(cTexto, CHR(8), "")   //
+cTexto := strtran(cTexto, CHR(10), "")   //
+cTexto := strtran(cTexto, CHR(11), "")  //
+cTexto := strtran(cTexto, CHR(12), "")  //
+cTexto := strtran(cTexto, CHR(13), "")   //
+cTexto := strtran(cTexto, CHR(14), "")  //
+cTexto := strtran(cTexto, CHR(15), "")  //
+cTexto := strtran(cTexto, CHR(16), "")  //
+cTexto := strtran(cTexto, CHR(17), "")  //
+cTexto := strtran(cTexto, CHR(18), "")  //
+cTexto := strtran(cTexto, CHR(19), "")  //
+cTexto := strtran(cTexto, CHR(20), "")  //
+cTexto := strtran(cTexto, CHR(21), "")  //
+cTexto := strtran(cTexto, CHR(22), "")  //
+cTexto := strtran(cTexto, CHR(23), "")  //
+cTexto := strtran(cTexto, CHR(24), "")  //
+cTexto := strtran(cTexto, CHR(25), "")  //
+cTexto := strtran(cTexto, CHR(26), "")  //
+cTexto := strtran(cTexto, CHR(27), "")  //
+cTexto := strtran(cTexto, CHR(28), "")  //
+cTexto := strtran(cTexto, CHR(29), "")  //
+cTexto := strtran(cTexto, CHR(30), "")  //
+cTexto := strtran(cTexto, CHR(31), "")  //
+cTexto := strtran(cTexto, CHR(34), "")  //
+cTexto := strtran(cTexto, CHR(127), "") //
+cTexto := strtran(cTexto, CHR(128), "") //
+cTexto := strtran(cTexto, CHR(131), "") //
+cTexto := strtran(cTexto, CHR(132), "") //
+cTexto := strtran(cTexto, CHR(133), "") //
+cTexto := strtran(cTexto, CHR(134), "") //
+cTexto := strtran(cTexto, CHR(135), "") //
+cTexto := strtran(cTexto, CHR(137), "") //
+cTexto := strtran(cTexto, CHR(138), "") //
+cTexto := strtran(cTexto, CHR(139), "") //
+cTexto := strtran(cTexto, CHR(140), "") //
+cTexto := strtran(cTexto, CHR(142), "") //
+cTexto := strtran(cTexto, CHR(145), "") //
+cTexto := strtran(cTexto, CHR(146), "") //
+cTexto := strtran(cTexto, CHR(147), "") //
+cTexto := strtran(cTexto, CHR(148), "") //
+cTexto := strtran(cTexto, CHR(149), "") //
+cTexto := strtran(cTexto, CHR(152), "") //
+cTexto := strtran(cTexto, CHR(153), "") //
+cTexto := strtran(cTexto, CHR(154), "") //
+cTexto := strtran(cTexto, CHR(155), "") //
+cTexto := strtran(cTexto, CHR(156), "") //
+cTexto := strtran(cTexto, CHR(158), "") //
+cTexto := strtran(cTexto, CHR(159), "") //
+cTexto := strtran(cTexto, CHR(161), "") //
+cTexto := strtran(cTexto, CHR(162), "") //
+cTexto := strtran(cTexto, CHR(163), "") //
+cTexto := strtran(cTexto, CHR(164), "") //
+cTexto := strtran(cTexto, CHR(165), "") //
+cTexto := strtran(cTexto, CHR(166), "") //
+cTexto := strtran(cTexto, CHR(167), "") //
+cTexto := strtran(cTexto, CHR(169), "") //
+cTexto := strtran(cTexto, CHR(171), "") //
+cTexto := strtran(cTexto, CHR(172), "") //
+cTexto := strtran(cTexto, CHR(173), "") //
+cTexto := strtran(cTexto, CHR(175), "") //
+cTexto := strtran(cTexto, CHR(176), "") //
+cTexto := strtran(cTexto, CHR(177), "") //
+cTexto := strtran(cTexto, CHR(178), "") //
+cTexto := strtran(cTexto, CHR(179), "") //
+cTexto := strtran(cTexto, CHR(181), "") //
+cTexto := strtran(cTexto, CHR(182), "") //
+cTexto := strtran(cTexto, CHR(183), "") //
+cTexto := strtran(cTexto, CHR(184), "") //
+cTexto := strtran(cTexto, CHR(185), "") //
+cTexto := strtran(cTexto, CHR(187), "") //
+cTexto := strtran(cTexto, CHR(188), "") //
+cTexto := strtran(cTexto, CHR(189), "") //
+cTexto := strtran(cTexto, CHR(190), "") //
+cTexto := strtran(cTexto, CHR(198), "") //
+cTexto := strtran(cTexto, CHR(208), "") //
+cTexto := strtran(cTexto, CHR(215), "") //
+cTexto := strtran(cTexto, CHR(216), "") //
+cTexto := strtran(cTexto, CHR(221), "") //
+cTexto := strtran(cTexto, CHR(222), "") //
+cTexto := strtran(cTexto, CHR(223), "") //
+cTexto := strtran(cTexto, CHR(230), "") //
+cTexto := strtran(cTexto, CHR(248), "") //
+cTexto := strtran(cTexto, CHR(253), "") //
+cTexto := strtran(cTexto, CHR(254), "") //
+cTexto := strtran(cTexto, CHR(255), "") //
+
+Return cTexto
+
+
+
+
+// //--------------------------------------------------------
+// // ESTE EXEMPLO UTILIZA O WS CLIENT COMPILADO
+// //--------------------------------------------------------
 // WSRESTFUL VerificaFonte DESCRIPTION "Verifica Fonte" FORMAT "application/json"
 
 // WSDATA Collection 		AS STRING OPTIONAL
@@ -588,4 +742,3 @@ Return aRet
 // EndIf	
 
 // Return _aRet
-
