@@ -64,27 +64,39 @@ Return .T.
 
 //--------------------------------------------------------
 
-WSRESTFUL VerificaCampo DESCRIPTION "Verifica campo na tabela" FORMAT "application/json"
+WSRESTFUL VerificaCampo DESCRIPTION "Verifica existencia do campo" FORMAT "application/json"
 
-WSDATA Alias 		AS STRING OPTIONAL
 WSDATA Campo 		AS STRING OPTIONAL
 
-WSMETHOD GET  DESCRIPTION "Verifica campo na tabela" 	PRODUCES APPLICATION_JSON
+WSMETHOD GET  DESCRIPTION "Verifica existencia do campo" 	PRODUCES APPLICATION_JSON
 
 END WSRESTFUL
 
 //---------
-WSMETHOD GET  WSRECEIVE Alias,Campo WSSERVICE VerificaCampo
- 
-dbSelectArea(::Alias)
+WSMETHOD GET  WSRECEIVE Campo WSSERVICE VerificaCampo
 
+Local cNomeCampo    := readValue('SX3', 2, Upper(::Campo), 'X3_CAMPO') 
+Local cAlias        := readValue('SX3', 2, cNomeCampo, 'X3_ARQUIVO') 
+Local cTipoCampo    := Upper( readValue('SX3', 2, cNomeCampo, 'X3_CONTEXT') )
 
-If FieldPos(::Campo) > 0
-    Self:SetResponse(    '{"result":true}')
-Else
-    Self:SetResponse(    '{"result":false}')
+If Empty(cNomeCampo)
+    Self:SetResponse(    '{"result":false, "msg":"Campo não encontrado no dicionário de dados"}')
+
+ElseIf cTipoCampo == 'R' .or. Empty(cTipoCampo)
+    
+    dbSelectArea(cAlias)
+
+    If FieldPos(cNomeCampo) > 0
+        Self:SetResponse(    '{"result":true , "msg":"Campo existe fisicamente"}')
+    Else
+        Self:SetResponse(    '{"result":false, "msg":"Campo físico não criado na estrutura da tabela}')
+    EndIf
+
+    DBCloseArea()
+    
+ElseIf cTipoCampo == 'V'
+    Self:SetResponse(    '{"result":true, "msg":"Campo virtual existente no dicionário"}')
 EndIf
-
 
 Return .T.
 
