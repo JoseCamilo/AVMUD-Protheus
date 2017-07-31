@@ -80,7 +80,7 @@ Local cAlias        := readValue('SX3', 2, cNomeCampo, 'X3_ARQUIVO')
 Local cTipoCampo    := Upper( readValue('SX3', 2, cNomeCampo, 'X3_CONTEXT') )
 
 If Empty(cNomeCampo)
-    Self:SetResponse(    '{"result":false, "msg":"Campo não encontrado no dicionário de dados"}')
+    Self:SetResponse(    '{"result":false, "msg":"Campo nï¿½o encontrado no dicionï¿½rio de dados"}')
 
 ElseIf cTipoCampo == 'R' .or. Empty(cTipoCampo)
     
@@ -89,13 +89,13 @@ ElseIf cTipoCampo == 'R' .or. Empty(cTipoCampo)
     If FieldPos(cNomeCampo) > 0
         Self:SetResponse(    '{"result":true , "msg":"Campo existe fisicamente"}')
     Else
-        Self:SetResponse(    '{"result":false, "msg":"Campo físico não criado na estrutura da tabela}')
+        Self:SetResponse(    '{"result":false, "msg":"Campo fï¿½sico nï¿½o criado na estrutura da tabela}')
     EndIf
 
     DBCloseArea()
     
 ElseIf cTipoCampo == 'V'
-    Self:SetResponse(    '{"result":true, "msg":"Campo virtual existente no dicionário"}')
+    Self:SetResponse(    '{"result":true, "msg":"Campo virtual existente no dicionï¿½rio"}')
 EndIf
 
 Return .T.
@@ -204,7 +204,7 @@ if len(GetSrcArray(cFonte)) > 0
     EndIf
 Else
     lRet := .F.
-    aAdd( aFontesRet, {cFonte,"Não existe no RPO"})
+    aAdd( aFontesRet, {cFonte,"Nï¿½o existe no RPO"})
 endif
 
 
@@ -280,7 +280,7 @@ If Len(aArquivos) > 0
             EndIf
         Else
             lRet := .F.
-            aAdd( aFontesRet, {cFonte,"Não existe no RPO"})
+            aAdd( aFontesRet, {cFonte,"Nï¿½o existe no RPO"})
         endif
     Next nI
 
@@ -352,7 +352,7 @@ endif
 //     Return aRet
 // endif
 
-// Define a operação
+// Define a operaï¿½ï¿½o
 xRet := oWsdl:SetOperation( "ListArqChangeset" )
 
 if xRet == .F.
@@ -360,7 +360,7 @@ if xRet == .F.
     Return aRet
 endif
 
-// Define o valor de cada parâmeto necessário
+// Define o valor de cada parï¿½meto necessï¿½rio
 xRet := oWsdl:SetValue( 0 , Collection )
 xRet := oWsdl:SetValue( 1 ,  ChangeSet )
 
@@ -440,7 +440,7 @@ endif
 //     Return aRet
 // endif
 
-// Define a operação
+// Define a operaï¿½ï¿½o
 xRet := oWsdl:SetOperation( "GetDateCheckin" )
 
 if xRet == .F.
@@ -448,7 +448,7 @@ if xRet == .F.
     Return aRet
 endif
 
-// Define o valor de cada parâmeto necessário
+// Define o valor de cada parï¿½meto necessï¿½rio
 xRet := oWsdl:SetValue( 0 , cArquivo )
 xRet := oWsdl:SetValue( 1 , cCollection )
 xRet := oWsdl:SetValue( 2 ,  cChangeSet )
@@ -598,7 +598,7 @@ else
                 SX1->( dbSetFilter({|| &cFilter},cFilter) )
                 SX1->( dbGoTop() )
 
-                SX1->(__dbCopy((RetFileName(cName)) , { },,,,,.F., oRequest:driver/*"DBFCDXADS"*/ ))
+                SX1->(__dbCopy((RetFileName(cName))ï¿½,ï¿½{ï¿½},,,,,.F.,ï¿½oRequest:driver/*"DBFCDXADS"*/ï¿½))
 
             case upper( allTrim( oRequest:tipo ) ) == 'SX2'
 
@@ -616,26 +616,33 @@ else
                 SX2->( dbSetFilter({|| &cFilter},cFilter) )
                 SX2->( dbGoTop() )
 
-                SX2->(__dbCopy((RetFileName(cName)) , { },,,,,.F., oRequest:driver/*"DBFCDXADS"*/ ))
+                SX2->(__dbCopy((RetFileName(cName))ï¿½,ï¿½{ï¿½},,,,,.F.,ï¿½oRequest:driver/*"DBFCDXADS"*/ï¿½))
 
             case upper( allTrim( oRequest:tipo ) ) == 'SX3'
 
-                // MONTA O FILTRO PODE PASSAR MAIS DE CAMPO
-                for nX := 1 to len(oRequest:estrutura)
-                    
-                    if nX == len(oRequest:estrutura)
-                        cFilter += "X3_CAMPO == '" + PadR(oRequest:estrutura[nX],10,'') + "' "
-                    else
-                        cFilter += "X3_CAMPO == '" + PadR(oRequest:estrutura[nX],10,'')  + "' .OR. "
-                    endif
-                next 
+                nPos := aScan(oRequest:estrutura,{|x| '*' $ (x) })
+
+                if nPos > 0
+                    cFilter := "X3_ARQUIVO == '" + left(oRequest:estrutura[nPos],3) + "' " 
+                else
+                
+                    // MONTA O FILTRO PODE PASSAR MAIS DE CAMPO
+                    for nX := 1 to len(oRequest:estrutura)
+                        
+                        if nX == len(oRequest:estrutura)
+                            cFilter += "X3_CAMPO == '" + PadR(oRequest:estrutura[nX],10,'') + "' "
+                        else
+                            cFilter += "X3_CAMPO == '" + PadR(oRequest:estrutura[nX],10,'')  + "' .OR. "
+                        endif
+                    next 
+                endif
                 
                 //Aplica o Filtro 
                 dbSelectArea('SX3')
                 SX3->( dbSetFilter({|| &cFilter},cFilter) )
                 SX3->( dbGoTop() )
 
-                SX3->(__dbCopy((RetFileName(cName)) , { },,,,,.F., oRequest:driver/*"DBFCDXADS"*/ ))
+                SX3->(__dbCopy((RetFileName(cName))ï¿½,ï¿½{ï¿½},,,,,.F.,ï¿½oRequest:driver/*"DBFCDXADS"*/ï¿½))
 
             case upper( allTrim( oRequest:tipo ) ) == 'SX6'
 
@@ -653,7 +660,7 @@ else
                 SX6->( dbSetFilter({|| &cFilter},cFilter) )
                 SX6->( dbGoTop() )
 
-                SX6->(__dbCopy((RetFileName(cName)) , { },,,,,.F., oRequest:driver/*"DBFCDXADS"*/ ))
+                SX6->(__dbCopy((RetFileName(cName))ï¿½,ï¿½{ï¿½},,,,,.F.,ï¿½oRequest:driver/*"DBFCDXADS"*/ï¿½))
 
             case upper( allTrim( oRequest:tipo ) ) == 'SX7'
 
@@ -671,7 +678,7 @@ else
                 SX7->( dbSetFilter({|| &cFilter},cFilter) )
                 SX7->( dbGoTop() )
 
-                SX7->(__dbCopy((RetFileName(cName)) , { },,,,,.F., oRequest:driver/*"DBFCDXADS"*/ ))
+                SX7->(__dbCopy((RetFileName(cName))ï¿½,ï¿½{ï¿½},,,,,.F.,ï¿½oRequest:driver/*"DBFCDXADS"*/ï¿½))
 
             case upper( allTrim( oRequest:tipo ) ) == 'SXB'
 
@@ -689,7 +696,7 @@ else
                 SXB->( dbSetFilter({|| &cFilter},cFilter) )
                 SXB->( dbGoTop() )
 
-                SXB->(__dbCopy((RetFileName(cName)) , { },,,,,.F., oRequest:driver/*"DBFCDXADS"*/ ))
+                SXB->(__dbCopy((RetFileName(cName))ï¿½,ï¿½{ï¿½},,,,,.F.,ï¿½oRequest:driver/*"DBFCDXADS"*/ï¿½))
 
             case upper( allTrim( oRequest:tipo ) ) == 'SIX'
 
@@ -707,7 +714,7 @@ else
                 SIX->( dbSetFilter({|| &cFilter},cFilter) )
                 SIX->( dbGoTop() )
 
-                SIX->(__dbCopy((RetFileName(cName)) , { },,,,,.F., oRequest:driver/*"DBFCDXADS"*/ ))
+                SIX->(__dbCopy((RetFileName(cName))ï¿½,ï¿½{ï¿½},,,,,.F.,ï¿½oRequest:driver/*"DBFCDXADS"*/ï¿½))
             
         endCase
         
