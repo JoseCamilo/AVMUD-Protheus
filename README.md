@@ -163,7 +163,7 @@ alias - string: Nome da Tabela que será verificada
 Itens do escopo que ainda precisamos desenvolver:
 
 ##### Campo
-(Ze)- Um metodo Rest do verbo Get que, receba o nome de um campo e, retorna o registro inteiro do SX3 deste campo, para ser usado no item abaixo:
+- (Ze) Um metodo Rest do verbo Get que, receba o nome de um campo e, retorna o registro inteiro do SX3 deste campo, para ser usado no item abaixo:
 - Um metodo Rest do verbo Get que, receba o endereço de 1 base Protheus(base onde o campo virtual esta criado) e o nome de um campo Virtual, busque o dicionario deste campo na base passada(usando o rest criado acima) e crie na base corrente. Retorno logico.
 
 
@@ -185,6 +185,3 @@ Itens do escopo que ainda precisamos desenvolver:
 - Um metodo Rest do Verbo Get que, receba o nome de uma consulta padrão, e verifica sua existencia no ambiente. Retorno logico.
 - (Ze) Um metodo Rest do verbo Get que, receba o nome de uma consulta padrão, retorna o seu dicionario de dados, para ser usado no item abaixo:
 - Um metodo Rest do Verbo Get que, receba o endereço de 1 base Protheus(base que tem a consulta padrao atualizada) e o nome da consulta padrão, busque a consulta padrao na base passada(usando o rest acima) e grave na base corrente. Retorno logico.
-
-##### Indice
-- Um metodo Rest do Verbo Get que, receba o nome de uma tabela e o numero ou apelido de um indice, e verifica a existencia do indice fisicamente na tabela. Retorno logico.

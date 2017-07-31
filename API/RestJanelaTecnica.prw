@@ -518,6 +518,56 @@ EndIf
 
 Return .T.
 
+//-------------------------------------------------------------------
+/*/{Protheus.doc} VerificaSIX
+Verifica a existencia do indice fisicamente na tabela
+@author marllon.fernandes
+@since 29/07/2017
+@wsmethod VerificaSIX
+@verbo GET
+@return logico + mensagem
+/*/
+//-------------------------------------------------------------------
+
+WSRESTFUL VerificaSIX DESCRIPTION "Verifica a existencia do indice fisicamente na tabela" FORMAT "application/json"
+
+    WSDATA alias AS STRING OPTIONAL
+    WSDATA order AS INTEGER OPTIONAL
+    WSDATA nickName AS STRING OPTIONAL
+
+    WSMETHOD GET  DESCRIPTION "Verifica a existencia do indice fisicamente na tabela" 	PRODUCES APPLICATION_JSON
+
+END WSRESTFUL
+
+WSMETHOD GET WSRECEIVE alias, order, nickName WSSERVICE VerificaSIX
+
+Local cError := ""
+Local oError := ErrorBlock({|e| cError := e:Description})
+Local oJson  := JsonUtil():New()
+ 
+Begin Sequence
+    dbSelectArea(self:alias)
+    if empty( self:nickName )
+        dbSetOrder(self:order)
+    else
+        dbOrderNickName(self:nickName)
+    endif
+    dbCloseArea()
+End Sequence
+
+ErrorBlock(oError)
+
+If Empty(cError)
+    oJson:PutVal("result",.T.)
+    oJson:PutVal("msg","Indice existe")
+    Self:SetResponse( oJson:ToJson() )
+Else
+    oJson:PutVal("result",.F.)
+    oJson:PutVal("msg",EspecMsg(cError))
+    Self:SetResponse( oJson:ToJson() )
+EndIf
+
+Return .T.
 
 //-------------------------------------------------------------------
 /*/{Protheus.doc} dicFileCreate
