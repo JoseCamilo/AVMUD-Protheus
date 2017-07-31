@@ -43,14 +43,14 @@ conteng	- string: Conteudo Inglês que deveria estar gravado
 Verifica se um campo físico existe em uma determinada tabela
 * Parâmetros:
 ```
-alias - string: Tabela onde será verificado o campo físico 
 campo - string: Campo que será verificado
 ```
 * Retorno:
 ```
-/VerificaCampo?alias=SA1&campo=A1_COD
+/VerificaCampo?campo=A1_COD
 {
-    "result": true
+    "result": true,
+    "msg": "Campo existe fisicamente"
 }
 ```
 
@@ -162,8 +162,7 @@ alias - string: Nome da Tabela que será verificada
 # Contribua
 Itens do escopo que ainda precisamos desenvolver:
 
-##### Campo Virtual
-- Um metodo Rest do verbo Get que verifica se um campo virtual, passado na chamada rest, existe no dicionario de dados. Retorno logico.
+##### Campo
 - Um metodo Rest do verbo Get que, receba o nome de um campo e, retorna o registro inteiro do SX3 deste campo, para ser usado no item abaixo:
 - Um metodo Rest do verbo Get que, receba o endereço de 1 base Protheus(base onde o campo virtual esta criado) e o nome de um campo Virtual, busque o dicionario deste campo na base passada(usando o rest criado acima) e crie na base corrente. Retorno logico.
 
