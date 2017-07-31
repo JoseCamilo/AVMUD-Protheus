@@ -38,9 +38,9 @@ conteng	- string: Conteudo Inglês que deveria estar gravado
     ]
 }
 ```
-#### Campo Físico 
+#### Campo 
 ##### /VerificaCampo/ - GET
-Verifica se um campo físico existe em uma determinada tabela
+Verifica se um campo existe no ambiente. Do tipo físico, verifica também a existência fisicamente na tabela.
 * Parâmetros:
 ```
 campo - string: Campo que será verificado
