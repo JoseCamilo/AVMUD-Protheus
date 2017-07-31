@@ -7,7 +7,7 @@ Acelerador Verificação de Mudança
 
 ## AVMUD-Protheus
 ### Validação de Dicionário
-#### SX6 
+#### Parâmetro 
 ##### /VerificaSX6/ - GET
 Verifica se o parâmetro está cadastrado com os valores desejados
 * Parâmetros:
