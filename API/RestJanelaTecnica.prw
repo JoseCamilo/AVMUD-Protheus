@@ -519,19 +519,227 @@ EndIf
 Return .T.
 
 
+//-------------------------------------------------------------------
+/*/{Protheus.doc} dicFileCreate
+Cria arquivo no formato informado conforme __LocalDriver
+@author marllon.fernandes
+@since 29/07/2017
+@wsmethod dicFileCreate
+@verbo PUT
+@return file
+/*/
+//-------------------------------------------------------------------
+WSRESTFUL dicFileCreate DESCRIPTION "Cria arquivo no formato informado conforme __LocalDriver" FORMAT "application/json"
+    
+    WSDATA driver 	    AS STRING
+    WSDATA diretorio 	AS STRING
+    WSDATA tipo 	    AS STRING   // sx2,sx3,six,sx6,sx7,sx1,sxb
+    WSDATA estrutura    AS ARRAY
 
+	WSMETHOD PUT DESCRIPTION    "Cria arquivo no formato informado conforme __LocalDriver"	PRODUCES APPLICATION_JSON
 
+END WSRESTFUL
 
+WSMETHOD PUT WSSERVICE dicFileCreate
 
+Local lRet      := .T.
+Local oJson     := JsonUtil():New()
+Local cBody     := ::GetContent()
+Local cFilter   := ''
+Local cName     := ''
+Local cFile     := ''
+Local ext       := '.dbf'
+Local nX        := 0
+Local oRequest
 
+if empty(cBody)
+    SetRestFault(400, "Parametros obrigatorios nao informados no body!")
+    lRet := .F.
+else
 
+    if fWJsonDeserialize(alltrim(cBody),@oRequest)
+               
+        if !( upper(alltrim(oRequest:tipo)) $ 'SX1;SX2;SX3;SX6;SX7;SXB;SIX' )
+            SetRestFault(400, "Tipo informado invalido!")
+            lRet := .F.
+        endif
+     
+        // MONTA O NOME DO ARQUIVO
+        cName := 'dicFileCreate_' + oRequest:tipo + '_' + dtos(date())
+        
+        // SE NAO PREENCHER O DRIVER ASSUMIRA O DEFAULT COMO DBF
+        if empty(oRequest:driver)
+            oRequest:driver := "DBFCDXADS" //__LocalDriver
+        endif
 
+        // REGRA EXTENSAO
+        if upper(alltrim(oRequest:tipo)) == "DBFCDXADS"
+            ext := '.dbf'
+        elseif upper(alltrim(oRequest:tipo)) == "CTREECDX"
+            ext := '.dtc'
+        endif
+        // MONTA O NOME DO ARQUIVO + EXTENSAO
+        cFile := cName + ext
 
+        do Case
+		    case upper( allTrim( oRequest:tipo ) ) == 'SX1'
 
+                // MONTA O FILTRO PODE PASSAR MAIS DE UMA TABELA
+                for nX := 1 to len(oRequest:estrutura)
+                    if nX == len(oRequest:estrutura)
+                        cFilter += "X1_GRUPO == '" + oRequest:estrutura[nX] + "' "
+                    else
+                        cFilter += "X1_GRUPO == '" + oRequest:estrutura[nX] + "' .OR. "
+                    endif
+                next 
+                
+                //Aplica o Filtro 
+                dbSelectArea('SX1')
+                SX1->( dbSetFilter({|| &cFilter},cFilter) )
+                SX1->( dbGoTop() )
 
+                SX1->(__dbCopy((RetFileName(cName)) , { },,,,,.F., oRequest:driver/*"DBFCDXADS"*/ ))
 
+            case upper( allTrim( oRequest:tipo ) ) == 'SX2'
 
+                // MONTA O FILTRO PODE PASSAR MAIS DE UMA TABELA
+                for nX := 1 to len(oRequest:estrutura)
+                    if nX == len(oRequest:estrutura)
+                        cFilter += "X2_CHAVE == '" + PadR(oRequest:estrutura[nX],03,'') + "' "
+                    else
+                        cFilter += "X2_CHAVE == '" + PadR(oRequest:estrutura[nX],03,'') + "' .OR. "
+                    endif
+                next 
+                
+                //Aplica o Filtro 
+                dbSelectArea('SX2')
+                SX2->( dbSetFilter({|| &cFilter},cFilter) )
+                SX2->( dbGoTop() )
 
+                SX2->(__dbCopy((RetFileName(cName)) , { },,,,,.F., oRequest:driver/*"DBFCDXADS"*/ ))
+
+            case upper( allTrim( oRequest:tipo ) ) == 'SX3'
+
+                // MONTA O FILTRO PODE PASSAR MAIS DE CAMPO
+                for nX := 1 to len(oRequest:estrutura)
+                    
+                    if nX == len(oRequest:estrutura)
+                        cFilter += "X3_CAMPO == '" + PadR(oRequest:estrutura[nX],10,'') + "' "
+                    else
+                        cFilter += "X3_CAMPO == '" + PadR(oRequest:estrutura[nX],10,'')  + "' .OR. "
+                    endif
+                next 
+                
+                //Aplica o Filtro 
+                dbSelectArea('SX3')
+                SX3->( dbSetFilter({|| &cFilter},cFilter) )
+                SX3->( dbGoTop() )
+
+                SX3->(__dbCopy((RetFileName(cName)) , { },,,,,.F., oRequest:driver/*"DBFCDXADS"*/ ))
+
+            case upper( allTrim( oRequest:tipo ) ) == 'SX6'
+
+                // MONTA O FILTRO PODE PASSAR MAIS DE PARAMETRO
+                for nX := 1 to len(oRequest:estrutura)
+                    if nX == len(oRequest:estrutura)
+                        cFilter += "X6_VAR == '" + PadR(oRequest:estrutura[nX],10,'') + "' "
+                    else
+                        cFilter += "X6_VAR == '" + PadR(oRequest:estrutura[nX],10,'') + "' .OR. "
+                    endif
+                next 
+                
+                //Aplica o Filtro 
+                dbSelectArea('SX6')
+                SX6->( dbSetFilter({|| &cFilter},cFilter) )
+                SX6->( dbGoTop() )
+
+                SX6->(__dbCopy((RetFileName(cName)) , { },,,,,.F., oRequest:driver/*"DBFCDXADS"*/ ))
+
+            case upper( allTrim( oRequest:tipo ) ) == 'SX7'
+
+                // MONTA O FILTRO PODE PASSAR MAIS DE GATILHO
+                for nX := 1 to len(oRequest:estrutura)
+                    if nX == len(oRequest:estrutura)
+                        cFilter += "X7_CAMPO == '" + PadR(oRequest:estrutura[nX],10,'') + "' "
+                    else
+                        cFilter += "X7_CAMPO == '" + PadR(oRequest:estrutura[nX],10,'') + "' .OR. "
+                    endif
+                next 
+                
+                //Aplica o Filtro 
+                dbSelectArea('SX7')
+                SX7->( dbSetFilter({|| &cFilter},cFilter) )
+                SX7->( dbGoTop() )
+
+                SX7->(__dbCopy((RetFileName(cName)) , { },,,,,.F., oRequest:driver/*"DBFCDXADS"*/ ))
+
+            case upper( allTrim( oRequest:tipo ) ) == 'SXB'
+
+                // MONTA O FILTRO PODE PASSAR MAIS DE UMA CONSULTA
+                for nX := 1 to len(oRequest:estrutura)
+                    if nX == len(oRequest:estrutura)
+                        cFilter += "XB_ALIAS == '" + PadR(oRequest:estrutura[nX],06,'') + "' "
+                    else
+                        cFilter += "XB_ALIAS == '" + PadR(oRequest:estrutura[nX],06,'') + "' .OR. "
+                    endif
+                next 
+                
+                //Aplica o Filtro 
+                dbSelectArea('SXB')
+                SXB->( dbSetFilter({|| &cFilter},cFilter) )
+                SXB->( dbGoTop() )
+
+                SXB->(__dbCopy((RetFileName(cName)) , { },,,,,.F., oRequest:driver/*"DBFCDXADS"*/ ))
+
+            case upper( allTrim( oRequest:tipo ) ) == 'SIX'
+
+                // MONTA O FILTRO PODE PASSAR MAIS DE UM INDICE
+                for nX := 1 to len(oRequest:estrutura)
+                    if nX == len(oRequest:estrutura)
+                        cFilter += "INDICE == '" + PadR(oRequest:estrutura[nX],03,'') + "' "
+                    else
+                        cFilter += "INDICE == '" + PadR(oRequest:estrutura[nX],03,'') + "' .OR. "
+                    endif
+                next 
+                
+                //Aplica o Filtro 
+                dbSelectArea('SIX')
+                SIX->( dbSetFilter({|| &cFilter},cFilter) )
+                SIX->( dbGoTop() )
+
+                SIX->(__dbCopy((RetFileName(cName)) , { },,,,,.F., oRequest:driver/*"DBFCDXADS"*/ ))
+            
+        endCase
+        
+        if file( GetSrvProfString("Startpath","") + cFile )
+                    
+            if right(oRequest:diretorio,1) != '/'
+                oRequest:diretorio := oRequest:diretorio + '/'
+            endif
+
+            if !( __CopyFile( GetSrvProfString("Startpath","") + cFile , oRequest:diretorio + cFile ) )
+                SetRestFault(400, 'erro ao copiar arquivo para: ' + oRequest:diretorio)
+                lRet := .F.
+            else                        
+                oJson:PutVal("result",.T.)
+                oJson:PutVal("mensagem",'arquivo copiado com sucesso para: ' + oRequest:diretorio + cFile)
+                FErase( GetSrvProfString("Startpath","") + cFile ) 
+                ::SetResponse( oJson:ToJson() )
+            endif
+        else
+            SetRestFault(400, 'nao foi possivel gerar arquivo: ' + cFile)
+            lRet := .F.
+        endif        
+
+       
+    else
+        SetRestFault(400, "Nao foi possivel realizar o parser!")
+        lRet := .F.
+    endif
+    
+endif
+
+return lRet
 
 
 
