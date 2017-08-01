@@ -26,7 +26,7 @@ EndIf
 
 Return .T.
 
-//--------------------------------------------------------
+//--
 
 WSRESTFUL EnviaEmail DESCRIPTION "Verifica campo na tabela" FORMAT "application/json"
 
