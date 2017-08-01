@@ -163,7 +163,7 @@ alias - string: Nome da Tabela que será verificada
 Itens do escopo que ainda precisamos desenvolver:
 
 ##### Campo
-- (Ze) Um metodo Rest do verbo Get que, receba o nome de um campo e, retorna o registro inteiro do SX3 deste campo, para ser usado no item abaixo:
+- (Ze_) Um metodo Rest do verbo Get que, receba o nome de um campo e, retorna o registro inteiro do SX3 deste campo, para ser usado no item abaixo:
 - Um metodo Rest do verbo Get que, receba o endereço de 1 base Protheus(base onde o campo virtual esta criado) e o nome de um campo Virtual, busque o dicionario deste campo na base passada(usando o rest criado acima) e crie na base corrente. Retorno logico.
 
 
