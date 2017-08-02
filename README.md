@@ -159,7 +159,7 @@ alias - string: Nome da Tabela que será verificada
 }
 ```
 
-# Contribua
+# Contribua :D
 Itens do escopo que ainda precisamos desenvolver:
 
 ##### Campo
