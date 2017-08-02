@@ -964,6 +964,48 @@ DBCloseArea()
 Self:SetResponse(cResponse)
 Return .T.
 
+
+//--------------------------------------------------------
+
+WSRESTFUL NomeCampos DESCRIPTION "Retorna o nome dos campos de uma tabela" FORMAT "application/json"
+
+WSDATA Tabela	AS STRING
+
+WSMETHOD GET  DESCRIPTION "Retorna o nome dos campos de uma tabela" 	PRODUCES APPLICATION_JSON
+
+END WSRESTFUL
+
+//---------
+WSMETHOD GET  WSRECEIVE Tabela WSSERVICE NomeCampos
+
+Local nTamanho  := 0
+Local nI        := 0
+Local aCampos   := {}
+Local oJson     := JsonUtil():New()
+
+If Empty(Self:Tabela)
+    oJson:PutVal("result",.F.)
+    oJson:PutVal("msg","Tabela não informada")
+    oJson:PutVal("campos",aCampos)
+    Self:SetResponse( oJson:ToJson() )    
+    Return .T.
+EndIf
+
+dbSelectArea(Self:Tabela)
+nTamanho := FCOUNT()
+
+For nI:=1 to nTamanho
+    aAdd(aCampos , FIELD(nI) ) 
+Next nI
+
+DBCloseArea()
+
+oJson:PutVal("result",.T.)
+oJson:PutVal("msg","Consulta realizada")
+oJson:PutVal("campos",aCampos)
+Self:SetResponse( oJson:ToJson() )    
+Return .T.
+
 // //--------------------------------------------------------
 // //--------------------------------------------------------
 // //--------------------------------------------------------
