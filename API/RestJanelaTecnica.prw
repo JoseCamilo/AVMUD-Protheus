@@ -80,7 +80,7 @@ Local cAlias        := readValue('SX3', 2, cNomeCampo, 'X3_ARQUIVO')
 Local cTipoCampo    := Upper( readValue('SX3', 2, cNomeCampo, 'X3_CONTEXT') )
 
 If Empty(cNomeCampo)
-    Self:SetResponse(    '{"result":false, "msg":"Campo n�o encontrado no dicion�rio de dados"}')
+    Self:SetResponse(    '{"result":false, "msg":"Campo não encontrado no dicionário de dados"}')
 
 ElseIf cTipoCampo == 'R' .or. Empty(cTipoCampo)
     
@@ -89,13 +89,13 @@ ElseIf cTipoCampo == 'R' .or. Empty(cTipoCampo)
     If FieldPos(cNomeCampo) > 0
         Self:SetResponse(    '{"result":true , "msg":"Campo existe fisicamente"}')
     Else
-        Self:SetResponse(    '{"result":false, "msg":"Campo f�sico n�o criado na estrutura da tabela}')
+        Self:SetResponse(    '{"result":false, "msg":"Campo físico não criado na estrutura da tabela}')
     EndIf
 
     DBCloseArea()
     
 ElseIf cTipoCampo == 'V'
-    Self:SetResponse(    '{"result":true, "msg":"Campo virtual existente no dicion�rio"}')
+    Self:SetResponse(    '{"result":true, "msg":"Campo virtual existente no dicionário"}')
 EndIf
 
 Return .T.
@@ -204,7 +204,7 @@ if len(GetSrcArray(cFonte)) > 0
     EndIf
 Else
     lRet := .F.
-    aAdd( aFontesRet, {cFonte,"N�o existe no RPO"})
+    aAdd( aFontesRet, {cFonte,"Não existe no RPO"})
 endif
 
 
@@ -280,7 +280,7 @@ If Len(aArquivos) > 0
             EndIf
         Else
             lRet := .F.
-            aAdd( aFontesRet, {cFonte,"N�o existe no RPO"})
+            aAdd( aFontesRet, {cFonte,"Não existe no RPO"})
         endif
     Next nI
 
@@ -352,7 +352,7 @@ endif
 //     Return aRet
 // endif
 
-// Define a opera��o
+// Define a operacao
 xRet := oWsdl:SetOperation( "ListArqChangeset" )
 
 if xRet == .F.
@@ -360,7 +360,7 @@ if xRet == .F.
     Return aRet
 endif
 
-// Define o valor de cada par�meto necess�rio
+// Define o valor de cada parameto necessario
 xRet := oWsdl:SetValue( 0 , Collection )
 xRet := oWsdl:SetValue( 1 ,  ChangeSet )
 
@@ -440,7 +440,7 @@ endif
 //     Return aRet
 // endif
 
-// Define a opera��o
+// Define a operacao
 xRet := oWsdl:SetOperation( "GetDateCheckin" )
 
 if xRet == .F.
@@ -448,7 +448,7 @@ if xRet == .F.
     Return aRet
 endif
 
-// Define o valor de cada par�meto necess�rio
+// Define o valor de cada parameto necessario
 xRet := oWsdl:SetValue( 0 , cArquivo )
 xRet := oWsdl:SetValue( 1 , cCollection )
 xRet := oWsdl:SetValue( 2 ,  cChangeSet )
@@ -648,7 +648,7 @@ else
                 SX1->( dbSetFilter({|| &cFilter},cFilter) )
                 SX1->( dbGoTop() )
 
-                SX1->(__dbCopy((RetFileName(cName))�,�{�},,,,,.F.,�oRequest:driver/*"DBFCDXADS"*/�))
+                SX1->(__dbCopy((RetFileName(cName)),{},,,,,.F.,oRequest:driver/*"DBFCDXADS"*/))
 
             case upper( allTrim( oRequest:tipo ) ) == 'SX2'
 
@@ -666,7 +666,7 @@ else
                 SX2->( dbSetFilter({|| &cFilter},cFilter) )
                 SX2->( dbGoTop() )
 
-                SX2->(__dbCopy((RetFileName(cName))�,�{�},,,,,.F.,�oRequest:driver/*"DBFCDXADS"*/�))
+                SX2->(__dbCopy((RetFileName(cName)),{},,,,,.F.,oRequest:driver/*"DBFCDXADS"*/))
 
             case upper( allTrim( oRequest:tipo ) ) == 'SX3'
 
@@ -692,7 +692,7 @@ else
                 SX3->( dbSetFilter({|| &cFilter},cFilter) )
                 SX3->( dbGoTop() )
 
-                SX3->(__dbCopy((RetFileName(cName))�,�{�},,,,,.F.,�oRequest:driver/*"DBFCDXADS"*/�))
+                SX3->(__dbCopy((RetFileName(cName)),{},,,,,.F.,oRequest:driver/*"DBFCDXADS"*/))
 
             case upper( allTrim( oRequest:tipo ) ) == 'SX6'
 
@@ -710,7 +710,7 @@ else
                 SX6->( dbSetFilter({|| &cFilter},cFilter) )
                 SX6->( dbGoTop() )
 
-                SX6->(__dbCopy((RetFileName(cName))�,�{�},,,,,.F.,�oRequest:driver/*"DBFCDXADS"*/�))
+                SX6->(__dbCopy((RetFileName(cName)),{},,,,,.F.,oRequest:driver/*"DBFCDXADS"*/))
 
             case upper( allTrim( oRequest:tipo ) ) == 'SX7'
 
@@ -728,7 +728,7 @@ else
                 SX7->( dbSetFilter({|| &cFilter},cFilter) )
                 SX7->( dbGoTop() )
 
-                SX7->(__dbCopy((RetFileName(cName))�,�{�},,,,,.F.,�oRequest:driver/*"DBFCDXADS"*/�))
+                SX7->(__dbCopy((RetFileName(cName)),{},,,,,.F.,oRequest:driver/*"DBFCDXADS"*/))
 
             case upper( allTrim( oRequest:tipo ) ) == 'SXB'
 
@@ -746,7 +746,7 @@ else
                 SXB->( dbSetFilter({|| &cFilter},cFilter) )
                 SXB->( dbGoTop() )
 
-                SXB->(__dbCopy((RetFileName(cName))�,�{�},,,,,.F.,�oRequest:driver/*"DBFCDXADS"*/�))
+                SXB->(__dbCopy((RetFileName(cName)),{},,,,,.F.,oRequest:driver/*"DBFCDXADS"*/))
 
             case upper( allTrim( oRequest:tipo ) ) == 'SIX'
 
@@ -764,7 +764,7 @@ else
                 SIX->( dbSetFilter({|| &cFilter},cFilter) )
                 SIX->( dbGoTop() )
 
-                SIX->(__dbCopy((RetFileName(cName))�,�{�},,,,,.F.,�oRequest:driver/*"DBFCDXADS"*/�))
+                SIX->(__dbCopy((RetFileName(cName)),{},,,,,.F.,oRequest:driver/*"DBFCDXADS"*/))
             
         endCase
         
@@ -799,6 +799,170 @@ endif
 return lRet
 
 
+//--------------------------------------------------------
+
+WSRESTFUL EstruturaSxs DESCRIPTION "Retorna a estrutura de um dicionario" FORMAT "application/json"
+
+WSDATA Tipo 		AS STRING OPTIONAL
+WSDATA Valor 		AS STRING OPTIONAL
+WSDATA Filial 		AS STRING OPTIONAL 
+WSDATA Ordem 		AS STRING OPTIONAL
+WSDATA Sequencia	AS STRING OPTIONAL
+
+WSMETHOD GET  DESCRIPTION "Retorna a estrutura de um dicionario" 	PRODUCES APPLICATION_JSON
+
+END WSRESTFUL
+
+//---------
+WSMETHOD GET  WSRECEIVE Tipo, Valor, Filial, Ordem, Sequencia WSSERVICE EstruturaSxs
+
+Local cBusca        := ""
+Local nTamSXs       := 0
+Local nI            := 0
+Local cResponse     := ""
+Local cTitulo
+Local xConteudo
+Local nOrder        := 1
+Local cDicionario   := ""
+Local cFilSelect := If(Empty(self:Filial) , Space(Len(cFilAnt)) , self:Filial )
+Local cIndice       := ""
+
+If Upper(self:Tipo) == 'TABELA'
+
+    cDicionario := 'SX2'
+    nOrder  := 1
+    cIndice := 'X2_CHAVE'
+    cBusca  := readValue(cDicionario, nOrder, Upper(self:Valor), cIndice)
+
+    If Empty(cBusca)
+        cResponse +=    '{"result":false, "msg":"Tabela não encontrado no dicionário de dados", "estrutura":[]}'
+        Self:SetResponse(cResponse)
+        Return .T.
+    EndIf
+
+ElseIf Upper(self:Tipo) == 'CAMPO'
+
+    cDicionario := 'SX3'
+    nOrder  := 2
+    cIndice := 'X3_CAMPO'
+    cBusca  := readValue(cDicionario, nOrder, Upper(self:Valor), cIndice)
+
+    If Empty(cBusca)
+        cResponse +=    '{"result":false, "msg":"Campo não encontrado no dicionário de dados", "estrutura":[]}'
+        Self:SetResponse(cResponse)
+        Return .T.
+    EndIf
+
+ElseIf Upper(self:Tipo) == 'PARAMETRO'
+
+    cDicionario := 'SX6'
+    nOrder  := 1
+    cIndice := 'X6_FIL+X6_VAR'
+    cBusca  := readValue(cDicionario, nOrder, cFilSelect + Upper(self:Valor), cIndice)
+
+    If Empty(cBusca)
+        cResponse +=    '{"result":false, "msg":"Parametro não encontrado no dicionário de dados", "estrutura":[]}'
+        Self:SetResponse(cResponse)
+        Return .T.
+    EndIf
+
+ElseIf Upper(self:Tipo) == 'GATILHO'
+
+    cDicionario := 'SX7'
+    nOrder  := 1
+    cIndice := 'X7_CAMPO+X7_SEQUENC'
+    cBusca  := readValue(cDicionario, nOrder, PadR(Upper(self:Valor),10,'') + self:Sequencia, cIndice)
+
+    If Empty(cBusca)
+        cResponse +=    '{"result":false, "msg":"Gatilho não encontrado no dicionário de dados", "estrutura":[]}'
+        Self:SetResponse(cResponse)
+        Return .T.
+    EndIf
+
+ElseIf Upper(self:Tipo) == 'INDICE'
+
+    cDicionario := 'SIX'
+    nOrder  := 1
+    cIndice := 'INDICE+ORDEM'
+    cBusca  := readValue(cDicionario, nOrder, PadR(Upper(self:Valor),3,'') + self:Ordem , cIndice)
+
+    If Empty(cBusca)
+        cResponse +=    '{"result":false, "msg":"Indice não encontrado no dicionário de dados", "estrutura":[]}'
+        Self:SetResponse(cResponse)
+        Return .T.
+    EndIf
+
+ElseIf Upper(self:Tipo) == 'CONSULTA'
+
+    cDicionario := 'SXB'
+    nOrder  := 1
+    cIndice := 'XB_ALIAS'
+    cBusca  := readValue(cDicionario, nOrder, Upper(self:Valor), cIndice)
+
+    If Empty(cBusca)
+        cResponse +=    '{"result":false, "msg":"Consulta não encontrado no dicionário de dados", "estrutura":[]}'
+        Self:SetResponse(cResponse)
+        Return .T.
+    EndIf
+
+EndIf
+
+dbSelectArea(cDicionario)
+dbSetOrder(nOrder)
+dbSeek(cBusca)
+
+nTamSXs := FCOUNT()
+
+//Retorno Geral
+cResponse += '{"result":true, "msg":"Estrutura encontrada",' 
+
+//Retorno dos itens
+cResponse += '"estrutura":[' 
+
+While &(cDicionario)->( &(cIndice)) == cBusca
+
+    cResponse += '[' 
+
+    For nI:=1 to nTamSXs
+        cTitulo := FIELD(nI)
+        xConteudo := &(cDicionario)->( &(cTitulo) )
+
+        if ValType(xConteudo) == 'C'
+
+            xConteudo := AllTrim( StrTran(xConteudo, '"', "'") )
+            cResponse +=   '{ "'+ cTitulo +'": "'+ xConteudo +'" }'
+
+        ElseIf ValType(xConteudo) == 'N'
+
+            cResponse +=   '{ "'+ cTitulo +'": '+ cValToChar(xConteudo) +' }'
+
+        ElseIf ValType(xConteudo) == 'L'
+
+            cResponse +=   '{ "'+ cTitulo +'": '+ Iif(xConteudo,"true","false") +' }'
+
+        Endif
+
+        if nI != nTamSXs
+            cResponse +=',' 
+        Endif
+    Next nI
+
+    cResponse += ']' 
+    
+    dbSkip()
+    If &(cDicionario)->( &(cIndice)) == cBusca
+        cResponse +=','
+    EndIf
+
+EndDo
+
+cResponse +=']' 
+cResponse +='}' 
+
+DBCloseArea()
+    
+Self:SetResponse(cResponse)
+Return .T.
 
 // //--------------------------------------------------------
 // //--------------------------------------------------------
