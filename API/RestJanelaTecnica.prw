@@ -2,7 +2,7 @@
 #INCLUDE "RESTFUL.CH"
 
 
-//--------------------------------------------------------
+//------
 
 WSRESTFUL VerificaFile DESCRIPTION "Verifica arquivo no server" FORMAT "application/json"
 
