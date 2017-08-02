@@ -163,25 +163,20 @@ alias - string: Nome da Tabela que será verificada
 Itens do escopo que ainda precisamos desenvolver:
 
 ##### Campo
-- (Ze) Um metodo Rest do verbo Get que, receba o nome de um campo e, retorna o registro inteiro do SX3 deste campo, para ser usado no item abaixo:
 - Um metodo Rest do verbo Get que, receba o endereço de 1 base Protheus(base onde o campo virtual esta criado) e o nome de um campo Virtual, busque o dicionario deste campo na base passada(usando o rest criado acima) e crie na base corrente. Retorno logico.
 
 
 ##### Atributo de Campo
 - Um metodo Rest do verbo Get que receba um campo, um dado e um campo da tabela SX3, e confira no dicionário se o dado está gravado no dicionario no campo do X3. Retorno logico.
-- (Ze) Um metodo Rest do verbo Get que, um campo e um campo da tabela SX3 e, retorna o conteudo de um campo de um registro do SX3, para ser usado no item abaixo:
 - Um metodo Rest do Verbo Get que, receba o endereço de 1 base Protheus(base onde o atributo esta correto), o nome do Campo(fisico ou virtual) e o nome de um campo do SX3, busque o conteudo deste campo na base passada(usando o rest acima) e grave na base corrente. Retorno logico.
 
 ##### Parametro
-- (Ze) Um metodo Rest do verbo Get que, receba um parametro, e retorna o registro do SX6 referente ao parametro passado, para ser usado no item abaixo:
 - Um metodo Rest do Verbo Get que, receba o endereço de 1 base Protheus(base que tem o parametro atualizado) e o nome de um parametro, busque o conteudo deste parametro na base passada(usando o rest acima) e grave na base corrente. Retorno logico.
 
 ##### Gatilho 
 - Um metodo Rest do Verbo Get que, receba o nome de um campo que contenha Gatilho e o numero de Sequencia do gatilho, e verifica a existencia do gatilho. Retorno logico.
-- (Ze) Um metodo Rest do verbo Get que, receba o nome de um campo que contenha Gatilho e o numero de Sequencia do gatilho e, retorna o seu registro do SX7, para ser usado no item abaixo:
 - Um metodo Rest do Verbo Get que, receba o endereço de 1 base Protheus(base que tem o gatilho atualizado) e o nome de um campo que contenha Gatilho e o numero de Sequencia do gatilho, busque o gatilho na base passada(usando o rest acima) e grave na base corrente. Retorno logico.
 
 ##### Consulta padrão
 - Um metodo Rest do Verbo Get que, receba o nome de uma consulta padrão, e verifica sua existencia no ambiente. Retorno logico.
-- (Ze) Um metodo Rest do verbo Get que, receba o nome de uma consulta padrão, retorna o seu dicionario de dados, para ser usado no item abaixo:
 - Um metodo Rest do Verbo Get que, receba o endereço de 1 base Protheus(base que tem a consulta padrao atualizada) e o nome da consulta padrão, busque a consulta padrao na base passada(usando o rest acima) e grave na base corrente. Retorno logico.
