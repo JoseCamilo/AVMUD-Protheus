@@ -166,9 +166,8 @@ Itens do escopo que ainda precisamos desenvolver:
 - Um metodo Rest do verbo Get que, receba o endereço de 1 base Protheus(base onde o campo virtual esta criado) e o nome de um campo Virtual, busque o dicionario deste campo na base passada(usando o rest criado acima) e crie na base corrente. Retorno logico.
 
 ##### Atributo de Campo
-- Um metodo Rest do verbo Get que receba um campo de uma tabela, um dado e o nome de um campo da tabela SX3, e confira no dicionário se o dado está gravado no dicionario no campo do X3. Retorno logico.
+- (Ze) Um metodo Rest do verbo Get que receba um campo de uma tabela, um dado e o nome de um campo da tabela SX3, e confira no dicionário se o dado está gravado no dicionario no campo do X3. Retorno logico.
 - Um metodo Rest do Verbo Get que, receba o endereço de 1 base Protheus(base onde o atributo esta correto), o nome do Campo(fisico ou virtual) e o nome de um campo do SX3, busque o conteudo deste campo na base passada(usando o rest acima) e grave na base corrente. Retorno logico.
-- (Ze) Um metodo que retorne o nome de todos os campos do SX3.
 
 ##### Parametro
 - Um metodo Rest do Verbo Get que, receba o endereço de 1 base Protheus(base que tem o parametro atualizado) e o nome de um parametro, busque o conteudo deste parametro na base passada(usando o rest acima) e grave na base corrente. Retorno logico.
