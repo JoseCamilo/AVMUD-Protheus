@@ -172,9 +172,7 @@ Itens do escopo que ainda precisamos desenvolver:
 - Um metodo Rest do Verbo Get que, receba o endereço de 1 base Protheus(base que tem o parametro atualizado) e o nome de um parametro, busque o conteudo deste parametro na base passada(usando o rest acima) e grave na base corrente. Retorno logico.
 
 ##### Gatilho 
-- (Ze) Um metodo Rest do Verbo Get que, receba o nome de um campo que contenha Gatilho e o numero de Sequencia do gatilho, e verifica a existencia do gatilho. Retorno logico.
 - Um metodo Rest do Verbo Get que, receba o endereço de 1 base Protheus(base que tem o gatilho atualizado) e o nome de um campo que contenha Gatilho e o numero de Sequencia do gatilho, busque o gatilho na base passada(usando o rest acima) e grave na base corrente. Retorno logico.
 
 ##### Consulta padrão
-- (Ze) Um metodo Rest do Verbo Get que, receba o nome de uma consulta padrão, e verifica sua existencia no ambiente. Retorno logico.
 - Um metodo Rest do Verbo Get que, receba o endereço de 1 base Protheus(base que tem a consulta padrao atualizada) e o nome da consulta padrão, busque a consulta padrao na base passada(usando o rest acima) e grave na base corrente. Retorno logico.
