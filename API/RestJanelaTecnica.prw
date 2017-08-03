@@ -75,7 +75,7 @@ END WSRESTFUL
 //---------
 WSMETHOD GET  WSRECEIVE Campo WSSERVICE VerificaCampo
 
-Local cNomeCampo    := readValue('SX3', 2, Upper(::Campo), 'X3_CAMPO') 
+Local cNomeCampo    := readValue('SX3', 2, PadR(Upper(::Campo),10) , 'X3_CAMPO') 
 Local cAlias        := readValue('SX3', 2, cNomeCampo, 'X3_ARQUIVO') 
 Local cTipoCampo    := Upper( readValue('SX3', 2, cNomeCampo, 'X3_CONTEXT') )
 
@@ -832,7 +832,7 @@ If Upper(self:Tipo) == 'TABELA'
     cDicionario := 'SX2'
     nOrder  := 1
     cIndice := 'X2_CHAVE'
-    cBusca  := readValue(cDicionario, nOrder, Upper(self:Valor), cIndice)
+    cBusca  := readValue(cDicionario, nOrder, PadR(Upper(self:Valor),3) , cIndice)
 
     If Empty(cBusca)
         cResponse +=    '{"result":false, "msg":"Tabela não encontrado no dicionário de dados", "estrutura":[]}'
@@ -845,7 +845,7 @@ ElseIf Upper(self:Tipo) == 'CAMPO'
     cDicionario := 'SX3'
     nOrder  := 2
     cIndice := 'X3_CAMPO'
-    cBusca  := readValue(cDicionario, nOrder, Upper(self:Valor), cIndice)
+    cBusca  := readValue(cDicionario, nOrder, PadR(Upper(self:Valor),10) , cIndice)
 
     If Empty(cBusca)
         cResponse +=    '{"result":false, "msg":"Campo não encontrado no dicionário de dados", "estrutura":[]}'
@@ -858,7 +858,7 @@ ElseIf Upper(self:Tipo) == 'PARAMETRO'
     cDicionario := 'SX6'
     nOrder  := 1
     cIndice := 'X6_FIL+X6_VAR'
-    cBusca  := readValue(cDicionario, nOrder, cFilSelect + Upper(self:Valor), cIndice)
+    cBusca  := readValue(cDicionario, nOrder, cFilSelect + PadR(Upper(self:Valor),10) , cIndice)
 
     If Empty(cBusca)
         cResponse +=    '{"result":false, "msg":"Parametro não encontrado no dicionário de dados", "estrutura":[]}'
@@ -871,7 +871,7 @@ ElseIf Upper(self:Tipo) == 'GATILHO'
     cDicionario := 'SX7'
     nOrder  := 1
     cIndice := 'X7_CAMPO+X7_SEQUENC'
-    cBusca  := readValue(cDicionario, nOrder, PadR(Upper(self:Valor),10,'') + self:Sequencia, cIndice)
+    cBusca  := readValue(cDicionario, nOrder, PadR(Upper(self:Valor),10) + self:Sequencia, cIndice)
 
     If Empty(cBusca)
         cResponse +=    '{"result":false, "msg":"Gatilho não encontrado no dicionário de dados", "estrutura":[]}'
@@ -884,7 +884,7 @@ ElseIf Upper(self:Tipo) == 'INDICE'
     cDicionario := 'SIX'
     nOrder  := 1
     cIndice := 'INDICE+ORDEM'
-    cBusca  := readValue(cDicionario, nOrder, PadR(Upper(self:Valor),3,'') + self:Ordem , cIndice)
+    cBusca  := readValue(cDicionario, nOrder, PadR(Upper(self:Valor),3) + self:Ordem , cIndice)
 
     If Empty(cBusca)
         cResponse +=    '{"result":false, "msg":"Indice não encontrado no dicionário de dados", "estrutura":[]}'
@@ -897,7 +897,7 @@ ElseIf Upper(self:Tipo) == 'CONSULTA'
     cDicionario := 'SXB'
     nOrder  := 1
     cIndice := 'XB_ALIAS'
-    cBusca  := readValue(cDicionario, nOrder, Upper(self:Valor), cIndice)
+    cBusca  := readValue(cDicionario, nOrder, PadR(Upper(self:Valor),6) , cIndice)
 
     If Empty(cBusca)
         cResponse +=    '{"result":false, "msg":"Consulta não encontrado no dicionário de dados", "estrutura":[]}'
@@ -1030,7 +1030,7 @@ If Empty(Self:Campo) .Or. Empty(Self:Atributo) .Or. Empty(Self:Valor)
     Return .T.
 EndIf
 
-xValorAmb   := readValue('SX3', 2, Upper(Self:Campo), Upper(Self:Atributo))
+xValorAmb   := readValue('SX3', 2, PadR(Upper(Self:Campo),10) , Upper(Self:Atributo))
 
 If AllTrim( cValToChar(xValorAmb) ) == Self:Valor
     lRet := .T.
@@ -1043,6 +1043,83 @@ oJson:PutVal("result",lRet)
 oJson:PutVal("msg",cMsg)
 Self:SetResponse( oJson:ToJson() )    
 Return .T.
+
+
+//--------------------------------------------------------
+
+WSRESTFUL VerificaConsulta DESCRIPTION "Retorna se uma consulta existe" FORMAT "application/json"
+
+WSDATA Consulta	AS STRING
+
+WSMETHOD GET  DESCRIPTION "Retorna se uma consulta existe" 	PRODUCES APPLICATION_JSON
+
+END WSRESTFUL
+//---------
+WSMETHOD GET  WSRECEIVE Consulta WSSERVICE VerificaConsulta
+
+Local oJson     := JsonUtil():New()
+Local lRet := .F.
+Local cMsg := "Consulta não existe"
+
+If Empty(Self:Consulta)
+    SetRestFault(400, 'Consulta não informada') 
+    Return .T.
+EndIf
+
+dbSelectArea('SXB')
+dbSetOrder(1)
+
+IF dbSeek( PadR(Upper(self:Consulta),6) )
+    lRet := .T.
+    cMsg := "Consulta existe"
+EndIf
+
+DBCloseArea()
+
+oJson:PutVal("result",lRet)
+oJson:PutVal("msg",cMsg)
+Self:SetResponse( oJson:ToJson() )    
+Return .T.
+
+//--------------------------------------------------------
+
+WSRESTFUL VerificaGatilho DESCRIPTION "Retorna se um Gatilho existe" FORMAT "application/json"
+
+WSDATA Gatilho	AS STRING
+WSDATA Sequencia	AS STRING
+
+WSMETHOD GET  DESCRIPTION "Retorna se um Gatilho existe" 	PRODUCES APPLICATION_JSON
+
+END WSRESTFUL
+//---------
+WSMETHOD GET  WSRECEIVE Gatilho, Sequencia WSSERVICE VerificaGatilho
+
+Local oJson     := JsonUtil():New()
+Local lRet := .F.
+Local cMsg := "Gatilho não existe"
+
+If Empty(Self:Gatilho) .Or. Empty(Self:Sequencia)
+    SetRestFault(400, 'Gatilho ou Sequencia não informado') 
+    Return .T.
+EndIf
+
+dbSelectArea('SX7')
+dbSetOrder(1)
+
+IF dbSeek( PadR(Upper(self:Gatilho),10) + self:Sequencia)
+    lRet := .T.
+    cMsg := "Gatilho existe"
+EndIf
+
+DBCloseArea()
+
+oJson:PutVal("result",lRet)
+oJson:PutVal("msg",cMsg)
+Self:SetResponse( oJson:ToJson() )    
+Return .T.
+
+
+
 
 // //--------------------------------------------------------
 // //--------------------------------------------------------
