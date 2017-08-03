@@ -1006,6 +1006,44 @@ oJson:PutVal("campos",aCampos)
 Self:SetResponse( oJson:ToJson() )    
 Return .T.
 
+//--------------------------------------------------------
+
+WSRESTFUL AtributoCampo DESCRIPTION "Retorna se o conteudo de um atributo de um campo, esta correto" FORMAT "application/json"
+
+WSDATA Campo	AS STRING
+WSDATA Atributo	AS STRING
+WSDATA Valor	AS STRING
+
+WSMETHOD GET  DESCRIPTION "Retorna se o conteudo de um atributo de um campo, esta correto" 	PRODUCES APPLICATION_JSON
+
+END WSRESTFUL
+//---------
+WSMETHOD GET  WSRECEIVE Campo, Atributo, Valor WSSERVICE AtributoCampo
+
+Local oJson     := JsonUtil():New()
+Local xValorAmb
+Local lRet := .F.
+Local cMsg := "Atributo de campo desatualizado"
+
+If Empty(Self:Campo) .Or. Empty(Self:Atributo) .Or. Empty(Self:Valor)
+    SetRestFault(400, 'Campo, Atributo ou Valor não informado') 
+    Return .T.
+EndIf
+
+xValorAmb   := readValue('SX3', 2, Upper(Self:Campo), Upper(Self:Atributo))
+
+If AllTrim( cValToChar(xValorAmb) ) == Self:Valor
+    lRet := .T.
+    cMsg := "Atributo de campo atualizado"
+EndIf
+
+DBCloseArea()
+
+oJson:PutVal("result",lRet)
+oJson:PutVal("msg",cMsg)
+Self:SetResponse( oJson:ToJson() )    
+Return .T.
+
 // //--------------------------------------------------------
 // //--------------------------------------------------------
 // //--------------------------------------------------------
@@ -1110,117 +1148,3 @@ cTexto := strtran(cTexto, CHR(254), "") //
 cTexto := strtran(cTexto, CHR(255), "") //
 
 Return cTexto
-
-
-
-
-// //--------------------------------------------------------
-// // ESTE EXEMPLO UTILIZA O WS CLIENT COMPILADO
-// //--------------------------------------------------------
-// WSRESTFUL VerificaFonte DESCRIPTION "Verifica Fonte" FORMAT "application/json"
-
-// WSDATA Collection 		AS STRING OPTIONAL
-// WSDATA ChangeSet 		AS STRING OPTIONAL
-
-// WSMETHOD GET  DESCRIPTION "Verifica Fonte" 	PRODUCES APPLICATION_JSON
-
-// END WSRESTFUL
-
-// //---------
-// WSMETHOD GET  WSRECEIVE Collection,ChangeSet WSSERVICE VerificaFonte
-
-// Local aArquivos := {}
-// Local nI := 0
-// Local aData := {}
-// Local cFonte
-// Local aFonte
-// Local lRet := .T.
-
-// aArquivos := u_ListArqTFS(::Collection, Val(::ChangeSet) )
-
-// If Len(aArquivos) > 0
-//     For nI:=1 to Len(aArquivos)
-
-//         aData := U_DataArqTFS(aArquivos[nI],::Collection,Val(::ChangeSet) )
-
-//         aFonte := StrTokArr(aArquivos[nI],"/")
-//         cFonte := aFonte[len(aFonte)]
-
-//         //verifica se o fonte existe no RPO
-//         if len(GetSrcArray(cFonte)) > 0
-//             //verifica data e hora
-//             if GetAPOInfo(GetSrcArray(cFonte)[1])[4] < aData[1] .OR.;
-//                 ( GetAPOInfo(GetSrcArray(cFonte)[1])[4] == aData[1] .AND. GetAPOInfo(GetSrcArray(cFonte)[1])[5] < aData[2] )
-//                 lRet := .F.
-//                 Exit
-//             EndIf
-//         Else
-//             lRet := .F.
-//             Exit
-//         endif
-//     Next nI
-
-//     If lRet
-//         Self:SetResponse(    '{"result":true}')
-//         conout("result ok")
-//     Else
-//         Self:SetResponse(    '{"result":false}')
-//         conout("result nok")
-//     EndIf
-// Else
-//     Self:SetResponse(    '{"result":false}')
-// EndIf
-
-// Return .T.
-
-// //-----------------------------------------------------------------------------
-// /*/ {Protheus.doc} Function
-
-// @author 
-// @version 
-// @since 
-// /*/
-// //-----------------------------------------------------------------------------
-// User Function ListArqTFS(cCollection, nChangeSet)
-// Local _oTFS := WSProdControleVersaoService():New()
-// Local _aRet := {}
-// Default nChangeSet := 0
-// Default cCollection := ""
-
-// If !Empty(cCollection) .And. nChangeSet > 0
-// 	_oTFS:cnomeCollection 	:= cCollection   
-// 	_oTFS:nchangeSet		:= nChangeSet
-// 	_oTFS:ListArqChangeset()
-// 	_aRet := _oTFS:OWSLISTARQCHANGESETRESULT:CSTRING
-// EndIf	
-
-// Return _aRet
-
-// //-----------------------------------------------------------------------------
-// /*/ {Protheus.doc} Function
-
-// @author 
-// @version 
-// @since 
-// /*/
-// //-----------------------------------------------------------------------------
-// User Function DataArqTFS(cArquivo,cCollection,cChangeSet)
-// Local _oTFS := WSProdControleVersaoService():New()
-// Local _cRet := ""
-// Local _aRet := {}
-// Default cChangeSet := 0
-// Default cCollection := ""
-// Default cArquivo := ""
-
-// If !Empty(cCollection) .And. cChangeSet > 0 .And. !Empty(cArquivo)
-// 	_oTFS:cnomeCollection 	:= cCollection   
-// 	_oTFS:nchangeSet		:= cChangeSet
-//     _oTFS:ccaminhoArquivo   := cArquivo
-// 	_oTFS:GetDateCheckin()
-// 	_cRet := _oTFS:cGetDateCheckinResult
-
-//     aAdd( _aRet, CtoD(left(_cRet,10)) )
-//     aAdd( _aRet, RIGHT(_cRet,8) )
-// EndIf	
-
-// Return _aRet
