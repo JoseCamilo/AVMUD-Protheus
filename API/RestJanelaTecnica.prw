@@ -1396,6 +1396,103 @@ EndIf
 
 Return lRet
 
+//--------------------------------------------------------
+
+WSRESTFUL GravaAtributoParametro DESCRIPTION "Recupera o dado de uma base e grava na corrente" FORMAT "application/json"
+
+WSDATA Origem	AS STRING
+WSDATA Parametro	AS STRING
+WSDATA Filial	AS STRING
+WSDATA Atributo	AS STRING
+
+WSMETHOD PUT  DESCRIPTION "Recupera o dado de uma base e grava na corrente" 	PRODUCES APPLICATION_JSON
+
+END WSRESTFUL
+//--------
+WSMETHOD PUT WSSERVICE GravaAtributoParametro
+
+Local lRet      := .T.
+Local oJson     := JsonUtil():New()
+Local cBody     := Self:GetContent()
+Local oRequest
+Local cAtributo
+Local cOrigem
+Local cFilSelect
+Local cParametro
+Local oRestClient
+Local oReqAux
+Local xConteudo
+
+
+if empty(cBody)
+    SetRestFault(400, "Parametros obrigatorios nao informados no body!")
+    lRet := .F.
+else
+
+    if fWJsonDeserialize(alltrim(cBody),@oRequest)
+
+        cOrigem := oRequest:Origem
+        cFilSelect := If(Empty(oRequest:Filial) , Space(Len(cFilAnt)) ,oRequest:Filial )
+        cParametro := oRequest:Parametro
+        cAtributo := oRequest:Atributo
+
+        oRestClient := FWRest():New(cOrigem)
+        oRestClient:setPath("/EstruturaSxs?tipo=parametro&valor=" + oRequest:Parametro + "&filial="+ oRequest:Filial)
+        
+
+        If oRestClient:Get()
+
+            if fWJsonDeserialize(oRestClient:GetResult(),@oReqAux)
+
+                If oReqAux:Result
+                
+                    dbSelectArea('SX6')
+                    dbSetOrder(1)
+                        
+                    If dbSeek( cFilSelect + PadR(Upper(cParametro),10) )
+                        RecLock('SX6', .F.)
+
+                            cTitulo := cAtributo
+                            xConteudo := &('oReqAux:estrutura[1]:'+ cTitulo)
+        
+                             SX6->( &(cTitulo) ) := xConteudo
+
+                        MsUnlock()
+                    else
+                        SetRestFault(400, "Parametro não encontrado no Destino")
+                        lRet := .F.
+                    EndIf
+
+                    DBCloseArea()
+
+                    oJson:PutVal("result",lRet)
+                    oJson:PutVal("msg","Copia realizada")
+                    Self:SetResponse( oJson:ToJson() )  
+                Else
+                    SetRestFault(400, "Erro na Origem: " + oReqAux:Msg)
+                    lRet := .F.
+                endif
+            else
+                SetRestFault(400, "Nao foi possivel realizar o parser do EstruturaSxs!")
+                lRet := .F.
+            EndIf
+
+            
+        Else
+            conout(oRestClient:GetLastError())
+            SetRestFault(400, "Nao foi possivel buscar dados na origem!")
+            lRet := .F.
+        Endif
+
+    else
+        SetRestFault(400, "Nao foi possivel realizar o parser do GravaCampo!")
+        lRet := .F.
+    EndIf
+
+EndIf
+
+Return lRet
+
 
 // //--------------------------------------------------------
 // //--------------------------------------------------------
