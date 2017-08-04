@@ -921,7 +921,7 @@ cResponse += '"estrutura":['
 
 While &(cDicionario)->( &(cIndice)) == cBusca
 
-    cResponse += '[' 
+    cResponse += '{' 
 
     For nI:=1 to nTamSXs
         cTitulo := FIELD(nI)
@@ -930,15 +930,20 @@ While &(cDicionario)->( &(cIndice)) == cBusca
         if ValType(xConteudo) == 'C'
 
             xConteudo := AllTrim( StrTran(xConteudo, '"', "'") )
-            cResponse +=   '{ "'+ cTitulo +'": "'+ xConteudo +'" }'
+
+            If cTitulo $ "X3_USADO;X3_RESERV"
+                cResponse +=   ' "'+ cTitulo +'": "'+ Encode64( xConteudo ) +'" '
+            Else                
+                cResponse +=   ' "'+ cTitulo +'": "'+ xConteudo +'" '
+            EndIf
 
         ElseIf ValType(xConteudo) == 'N'
 
-            cResponse +=   '{ "'+ cTitulo +'": '+ cValToChar(xConteudo) +' }'
+            cResponse +=   ' "'+ cTitulo +'": '+ cValToChar(xConteudo) +' '
 
         ElseIf ValType(xConteudo) == 'L'
 
-            cResponse +=   '{ "'+ cTitulo +'": '+ Iif(xConteudo,"true","false") +' }'
+            cResponse +=   ' "'+ cTitulo +'": '+ Iif(xConteudo,"true","false") +' '
 
         Endif
 
@@ -947,7 +952,7 @@ While &(cDicionario)->( &(cIndice)) == cBusca
         Endif
     Next nI
 
-    cResponse += ']' 
+    cResponse += '}' 
     
     dbSkip()
     If &(cDicionario)->( &(cIndice)) == cBusca
@@ -1118,6 +1123,96 @@ oJson:PutVal("msg",cMsg)
 Self:SetResponse( oJson:ToJson() )    
 Return .T.
 
+
+//--------------------------------------------------------
+
+WSRESTFUL GravaCampo DESCRIPTION "Recupera o dado de uma base e grava na corrente" FORMAT "application/json"
+
+WSDATA Origem	AS STRING
+WSDATA Campo	AS STRING
+
+WSMETHOD POST  DESCRIPTION "Recupera o dado de uma base e grava na corrente" 	PRODUCES APPLICATION_JSON
+
+END WSRESTFUL
+//--------
+WSMETHOD POST WSSERVICE GravaCampo
+
+Local lRet      := .T.
+Local cMsg      := "Copia realizada"
+Local oJson     := JsonUtil():New()
+Local cBody     := Self:GetContent()
+Local nX        := 0
+Local nHeader  := 0
+Local oRequest
+Local oRestClient
+Local oReqRest
+Local nPosCampo
+Local xConteudo
+
+
+if empty(cBody)
+    SetRestFault(400, "Parametros obrigatorios nao informados no body!")
+    lRet := .F.
+else
+
+    if fWJsonDeserialize(alltrim(cBody),@oRequest)
+
+        oRestClient := FWRest():New(oRequest:Origem)
+        oRestClient:setPath("/EstruturaSxs?tipo=campo&valor=" + oRequest:Campo)
+        If oRestClient:Get()
+
+            if fWJsonDeserialize(oRestClient:GetResult(),@oReqRest) //oReqRest:RESULT
+
+                If oReqRest:Result
+                
+                    dbSelectArea('SX3')
+                    nHeader := FCOUNT()
+
+                    RecLock('SX3', .T.)
+
+                        For nX:=1 to nHeader
+                            cTitulo := FIELD(nX)
+                            xConteudo := &('oReqRest:estrutura[1]:'+ cTitulo)
+
+                            If cTitulo $ "X3_USADO;X3_RESERV"
+                                SX3->( &(cTitulo) ) := Decode64( xConteudo )
+                            Else                
+                                SX3->( &(cTitulo) ) := xConteudo
+                            EndIf
+
+                        Next nX
+
+                    MsUnlock()
+
+                    DBCloseArea()
+
+                    oJson:PutVal("result",lRet)
+                    oJson:PutVal("msg",cMsg)
+                    Self:SetResponse( oJson:ToJson() )  
+                Else
+                    SetRestFault(400, "Erro na Origem: " + oReqRest:Msg)
+                    lRet := .F.
+                endif
+            else
+                SetRestFault(400, "Nao foi possivel realizar o parser do EstruturaSxs!")
+                lRet := .F.
+            EndIf
+
+            
+        Else
+            conout(oRestClient:GetLastError())
+            SetRestFault(400, "Nao foi possivel buscar dados na origem!")
+            lRet := .F.
+        Endif
+
+    else
+        SetRestFault(400, "Nao foi possivel realizar o parser do GravaCampo!")
+        lRet := .F.
+    EndIf
+
+EndIf
+
+Return lRet
 
 
 
