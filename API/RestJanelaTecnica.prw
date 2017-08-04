@@ -1138,14 +1138,13 @@ END WSRESTFUL
 WSMETHOD POST WSSERVICE GravaCampo
 
 Local lRet      := .T.
-Local cMsg      := "Copia realizada"
 Local oJson     := JsonUtil():New()
 Local cBody     := Self:GetContent()
 Local nX        := 0
 Local nHeader  := 0
 Local oRequest
 Local oRestClient
-Local oReqRest
+Local oReqAux
 Local nPosCampo
 Local xConteudo
 
@@ -1161,9 +1160,9 @@ else
         oRestClient:setPath("/EstruturaSxs?tipo=campo&valor=" + oRequest:Campo)
         If oRestClient:Get()
 
-            if fWJsonDeserialize(oRestClient:GetResult(),@oReqRest) //oReqRest:RESULT
+            if fWJsonDeserialize(oRestClient:GetResult(),@oReqAux)
 
-                If oReqRest:Result
+                If oReqAux:Result
                 
                     dbSelectArea('SX3')
                     nHeader := FCOUNT()
@@ -1172,7 +1171,7 @@ else
 
                         For nX:=1 to nHeader
                             cTitulo := FIELD(nX)
-                            xConteudo := &('oReqRest:estrutura[1]:'+ cTitulo)
+                            xConteudo := &('oReqAux:estrutura[1]:'+ cTitulo)
 
                             If cTitulo $ "X3_USADO;X3_RESERV"
                                 SX3->( &(cTitulo) ) := Decode64( xConteudo )
@@ -1187,10 +1186,109 @@ else
                     DBCloseArea()
 
                     oJson:PutVal("result",lRet)
-                    oJson:PutVal("msg",cMsg)
+                    oJson:PutVal("msg","Copia realizada")
                     Self:SetResponse( oJson:ToJson() )  
                 Else
-                    SetRestFault(400, "Erro na Origem: " + oReqRest:Msg)
+                    SetRestFault(400, "Erro na Origem: " + oReqAux:Msg)
+                    lRet := .F.
+                endif
+            else
+                SetRestFault(400, "Nao foi possivel realizar o parser do EstruturaSxs!")
+                lRet := .F.
+            EndIf
+
+            
+        Else
+            conout(oRestClient:GetLastError())
+            SetRestFault(400, "Nao foi possivel buscar dados na origem!")
+            lRet := .F.
+        Endif
+
+    else
+        SetRestFault(400, "Nao foi possivel realizar o parser do GravaCampo!")
+        lRet := .F.
+    EndIf
+
+EndIf
+
+Return lRet
+
+
+//--------------------------------------------------------
+
+WSRESTFUL GravaAtributoCampo DESCRIPTION "Recupera o dado de uma base e grava na corrente" FORMAT "application/json"
+
+WSDATA Origem	AS STRING
+WSDATA Campo	AS STRING
+WSDATA Atributo	AS STRING
+
+WSMETHOD PUT  DESCRIPTION "Recupera o dado de uma base e grava na corrente" 	PRODUCES APPLICATION_JSON
+
+END WSRESTFUL
+//--------
+WSMETHOD PUT WSSERVICE GravaAtributoCampo
+
+Local lRet      := .T.
+Local oJson     := JsonUtil():New()
+Local cBody     := Self:GetContent()
+Local nX        := 0
+Local nHeader  := 0
+Local oRequest
+Local cAtributo
+Local oRestClient
+Local oReqAux
+Local nPosCampo
+Local xConteudo
+
+
+if empty(cBody)
+    SetRestFault(400, "Parametros obrigatorios nao informados no body!")
+    lRet := .F.
+else
+
+    if fWJsonDeserialize(alltrim(cBody),@oRequest)
+
+        cOrigem := oRequest:Origem
+        cCampo := oRequest:Campo
+        cAtributo := oRequest:Atributo
+
+        oRestClient := FWRest():New(cOrigem)
+        oRestClient:setPath("/EstruturaSxs?tipo=campo&valor=" + cCampo)
+        
+
+        If oRestClient:Get()
+
+            if fWJsonDeserialize(oRestClient:GetResult(),@oReqAux)
+
+                If oReqAux:Result
+                
+                    dbSelectArea('SX3')
+                    dbSetOrder(2)
+                    If dbSeek(PadR(Upper(cCampo),10))
+                        RecLock('SX3', .F.)
+
+                            cTitulo := cAtributo
+                            xConteudo := &('oReqAux:estrutura[1]:'+ cTitulo)
+
+                            If cTitulo $ "X3_USADO;X3_RESERV"
+                                SX3->( &(cTitulo) ) := Decode64( xConteudo )
+                            Else                
+                                SX3->( &(cTitulo) ) := xConteudo
+                            EndIf
+
+                        MsUnlock()
+                    else
+                        SetRestFault(400, "Campo não encontrado no Destino")
+                        lRet := .F.
+                    EndIf
+
+                    DBCloseArea()
+
+                    oJson:PutVal("result",lRet)
+                    oJson:PutVal("msg","Copia realizada")
+                    Self:SetResponse( oJson:ToJson() )  
+                Else
+                    SetRestFault(400, "Erro na Origem: " + oReqAux:Msg)
                     lRet := .F.
                 endif
             else
