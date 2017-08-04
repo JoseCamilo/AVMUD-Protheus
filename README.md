@@ -162,11 +162,8 @@ alias - string: Nome da Tabela que será verificada
 # Contribua :D
 Itens do escopo que ainda precisamos desenvolver:
 
-##### Campo
-- (Ze) Um metodo Rest do verbo Get que, receba o endereço de 1 base Protheus(base onde o campo virtual esta criado) e o nome de um campo Virtual, busque o dicionario deste campo na base passada(usando o rest criado acima) e crie na base corrente. Retorno logico.
-
 ##### Atributo de Campo
-- Um metodo Rest do Verbo Get que, receba o endereço de 1 base Protheus(base onde o atributo esta correto), o nome do Campo(fisico ou virtual) e o nome de um campo do SX3, busque o conteudo deste campo na base passada(usando o rest acima) e grave na base corrente. Retorno logico.
+- (Ze) Um metodo Rest do Verbo Get que, receba o endereço de 1 base Protheus(base onde o atributo esta correto), o nome do Campo(fisico ou virtual) e o nome de um campo do SX3, busque o conteudo deste campo na base passada(usando o rest acima) e grave na base corrente. Retorno logico.
 
 ##### Parametro
 - Um metodo Rest do Verbo Get que, receba o endereço de 1 base Protheus(base que tem o parametro atualizado) e o nome de um parametro, busque o conteudo deste parametro na base passada(usando o rest acima) e grave na base corrente. Retorno logico.
