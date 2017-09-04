@@ -2,7 +2,7 @@
 #INCLUDE "RESTFUL.CH"
 
 
-//--------------------------------------------------------
+//------
 
 WSRESTFUL VerificaFile DESCRIPTION "Verifica arquivo no server" FORMAT "application/json"
 
@@ -26,7 +26,7 @@ EndIf
 
 Return .T.
 
-//--------------------------------------------------------
+//--
 
 WSRESTFUL EnviaEmail DESCRIPTION "Verifica campo na tabela" FORMAT "application/json"
 
@@ -64,27 +64,39 @@ Return .T.
 
 //--------------------------------------------------------
 
-WSRESTFUL VerificaCampo DESCRIPTION "Verifica campo na tabela" FORMAT "application/json"
+WSRESTFUL VerificaCampo DESCRIPTION "Verifica existencia do campo" FORMAT "application/json"
 
-WSDATA Alias 		AS STRING OPTIONAL
 WSDATA Campo 		AS STRING OPTIONAL
 
-WSMETHOD GET  DESCRIPTION "Verifica campo na tabela" 	PRODUCES APPLICATION_JSON
+WSMETHOD GET  DESCRIPTION "Verifica existencia do campo" 	PRODUCES APPLICATION_JSON
 
 END WSRESTFUL
 
 //---------
-WSMETHOD GET  WSRECEIVE Alias,Campo WSSERVICE VerificaCampo
- 
-dbSelectArea(::Alias)
+WSMETHOD GET  WSRECEIVE Campo WSSERVICE VerificaCampo
 
+Local cNomeCampo    := readValue('SX3', 2, PadR(Upper(::Campo),10) , 'X3_CAMPO') 
+Local cAlias        := readValue('SX3', 2, cNomeCampo, 'X3_ARQUIVO') 
+Local cTipoCampo    := Upper( readValue('SX3', 2, cNomeCampo, 'X3_CONTEXT') )
 
-If FieldPos(::Campo) > 0
-    Self:SetResponse(    '{"result":true}')
-Else
-    Self:SetResponse(    '{"result":false}')
+If Empty(cNomeCampo)
+    Self:SetResponse(    '{"result":false, "msg":"Campo não encontrado no dicionário de dados"}')
+
+ElseIf cTipoCampo == 'R' .or. Empty(cTipoCampo)
+    
+    dbSelectArea(cAlias)
+
+    If FieldPos(cNomeCampo) > 0
+        Self:SetResponse(    '{"result":true , "msg":"Campo existe fisicamente"}')
+    Else
+        Self:SetResponse(    '{"result":false, "msg":"Campo físico não criado na estrutura da tabela}')
+    EndIf
+
+    DBCloseArea()
+    
+ElseIf cTipoCampo == 'V'
+    Self:SetResponse(    '{"result":true, "msg":"Campo virtual existente no dicionário"}')
 EndIf
-
 
 Return .T.
 
@@ -192,7 +204,7 @@ if len(GetSrcArray(cFonte)) > 0
     EndIf
 Else
     lRet := .F.
-    aAdd( aFontesRet, {cFonte,"N�o existe no RPO"})
+    aAdd( aFontesRet, {cFonte,"Não existe no RPO"})
 endif
 
 
@@ -268,7 +280,7 @@ If Len(aArquivos) > 0
             EndIf
         Else
             lRet := .F.
-            aAdd( aFontesRet, {cFonte,"N�o existe no RPO"})
+            aAdd( aFontesRet, {cFonte,"Não existe no RPO"})
         endif
     Next nI
 
@@ -299,12 +311,12 @@ EndIf
 Return .T.
 
 //-----------------------------------------------------------------------------
-/*/ {Protheus.doc} Function
+//{Protheus.doc} Function
 
-@author 
-@version 
-@since 
-/*/
+//@author 
+//@version 
+////@since 
+
 //-----------------------------------------------------------------------------
 User Function TListArqTFS(Collection, ChangeSet)
 
@@ -340,7 +352,7 @@ endif
 //     Return aRet
 // endif
 
-// Define a opera��o
+// Define a operacao
 xRet := oWsdl:SetOperation( "ListArqChangeset" )
 
 if xRet == .F.
@@ -348,7 +360,7 @@ if xRet == .F.
     Return aRet
 endif
 
-// Define o valor de cada par�meto necess�rio
+// Define o valor de cada parameto necessario
 xRet := oWsdl:SetValue( 0 , Collection )
 xRet := oWsdl:SetValue( 1 ,  ChangeSet )
 
@@ -389,12 +401,11 @@ Return aRet
 
 
 //-----------------------------------------------------------------------------
-/*/ {Protheus.doc} Function
 
-@author 
-@version 
-@since 
-/*/
+//@author 
+//@version 
+//@since 
+
 //-----------------------------------------------------------------------------
 User Function TDataArqTFS(cArquivo,cCollection,cChangeSet)
 
@@ -429,7 +440,7 @@ endif
 //     Return aRet
 // endif
 
-// Define a opera��o
+// Define a operacao
 xRet := oWsdl:SetOperation( "GetDateCheckin" )
 
 if xRet == .F.
@@ -437,7 +448,7 @@ if xRet == .F.
     Return aRet
 endif
 
-// Define o valor de cada par�meto necess�rio
+// Define o valor de cada parameto necessario
 xRet := oWsdl:SetValue( 0 , cArquivo )
 xRet := oWsdl:SetValue( 1 , cCollection )
 xRet := oWsdl:SetValue( 2 ,  cChangeSet )
@@ -473,119 +484,1290 @@ EndIf
 
 Return aRet
 
+
+
+
+//--------------------------------------------------------
+
+WSRESTFUL VerificaAlias DESCRIPTION "Verifica e cria alias" FORMAT "application/json"
+
+WSDATA Alias 		AS STRING OPTIONAL
+
+WSMETHOD GET  DESCRIPTION "Verifica e cria alias" 	PRODUCES APPLICATION_JSON
+
+END WSRESTFUL
+
+//---------
+WSMETHOD GET  WSRECEIVE Alias WSSERVICE VerificaAlias
+
+Local cError := ""
+Local oError := ErrorBlock({|e| cError := e:Description})
+ 
+Begin Sequence
+    DbSelectArea(::Alias)
+    DBCloseArea()
+End Sequence
+
+ErrorBlock(oError)
+
+If Empty(cError)
+    Self:SetResponse(    '{"result":true , "msg":"Tabela existe"}')
+Else
+    Self:SetResponse(    '{"result":false, "msg":"'+EspecMsg(cError)+'"}')
+EndIf
+
+Return .T.
+
+//-------------------------------------------------------------------
+/*/{Protheus.doc} VerificaSIX
+Verifica a existencia do indice fisicamente na tabela
+@author marllon.fernandes
+@since 29/07/2017
+@wsmethod VerificaSIX
+@verbo GET
+@return logico + mensagem
+/*/
+//-------------------------------------------------------------------
+
+WSRESTFUL VerificaSIX DESCRIPTION "Verifica a existencia do indice fisicamente na tabela" FORMAT "application/json"
+
+    WSDATA alias AS STRING OPTIONAL
+    WSDATA order AS INTEGER OPTIONAL
+    WSDATA nickName AS STRING OPTIONAL
+
+    WSMETHOD GET  DESCRIPTION "Verifica a existencia do indice fisicamente na tabela" 	PRODUCES APPLICATION_JSON
+
+END WSRESTFUL
+
+WSMETHOD GET WSRECEIVE alias, order, nickName WSSERVICE VerificaSIX
+
+Local cError := ""
+Local oError := ErrorBlock({|e| cError := e:Description})
+Local oJson  := JsonUtil():New()
+ 
+Begin Sequence
+    dbSelectArea(self:alias)
+    if empty( self:nickName )
+        dbSetOrder(self:order)
+    else
+        dbOrderNickName(self:nickName)
+    endif
+    dbCloseArea()
+End Sequence
+
+ErrorBlock(oError)
+
+If Empty(cError)
+    oJson:PutVal("result",.T.)
+    oJson:PutVal("msg","Indice existe")
+    Self:SetResponse( oJson:ToJson() )
+Else
+    oJson:PutVal("result",.F.)
+    oJson:PutVal("msg",EspecMsg(cError))
+    Self:SetResponse( oJson:ToJson() )
+EndIf
+
+Return .T.
+
+//-------------------------------------------------------------------
+/*/{Protheus.doc} dicFileCreate
+Cria arquivo no formato informado conforme __LocalDriver
+@author marllon.fernandes
+@since 29/07/2017
+@wsmethod dicFileCreate
+@verbo PUT
+@return file
+/*/
+//-------------------------------------------------------------------
+WSRESTFUL dicFileCreate DESCRIPTION "Cria arquivo no formato informado conforme __LocalDriver" FORMAT "application/json"
+    
+    WSDATA driver 	    AS STRING
+    WSDATA diretorio 	AS STRING
+    WSDATA tipo 	    AS STRING   // sx2,sx3,six,sx6,sx7,sx1,sxb
+    WSDATA estrutura    AS ARRAY
+
+	WSMETHOD PUT DESCRIPTION    "Cria arquivo no formato informado conforme __LocalDriver"	PRODUCES APPLICATION_JSON
+
+END WSRESTFUL
+
+WSMETHOD PUT WSSERVICE dicFileCreate
+
+Local lRet      := .T.
+Local oJson     := JsonUtil():New()
+Local cBody     := ::GetContent()
+Local cFilter   := ''
+Local cName     := ''
+Local cFile     := ''
+Local ext       := '.dbf'
+Local nX        := 0
+Local oRequest
+
+if empty(cBody)
+    SetRestFault(400, "Parametros obrigatorios nao informados no body!")
+    lRet := .F.
+else
+
+    if fWJsonDeserialize(alltrim(cBody),@oRequest)
+               
+        if !( upper(alltrim(oRequest:tipo)) $ 'SX1;SX2;SX3;SX6;SX7;SXB;SIX' )
+            SetRestFault(400, "Tipo informado invalido!")
+            lRet := .F.
+        endif
+     
+        // MONTA O NOME DO ARQUIVO
+        cName := 'dicFileCreate_' + oRequest:tipo + '_' + dtos(date())
+        
+        // SE NAO PREENCHER O DRIVER ASSUMIRA O DEFAULT COMO DBF
+        if empty(oRequest:driver)
+            oRequest:driver := "DBFCDXADS" //__LocalDriver
+        endif
+
+        // REGRA EXTENSAO
+        if upper(alltrim(oRequest:tipo)) == "DBFCDXADS"
+            ext := '.dbf'
+        elseif upper(alltrim(oRequest:tipo)) == "CTREECDX"
+            ext := '.dtc'
+        endif
+        // MONTA O NOME DO ARQUIVO + EXTENSAO
+        cFile := cName + ext
+
+        do Case
+		    case upper( allTrim( oRequest:tipo ) ) == 'SX1'
+
+                // MONTA O FILTRO PODE PASSAR MAIS DE UMA TABELA
+                for nX := 1 to len(oRequest:estrutura)
+                    if nX == len(oRequest:estrutura)
+                        cFilter += "X1_GRUPO == '" + oRequest:estrutura[nX] + "' "
+                    else
+                        cFilter += "X1_GRUPO == '" + oRequest:estrutura[nX] + "' .OR. "
+                    endif
+                next 
+                
+                //Aplica o Filtro 
+                dbSelectArea('SX1')
+                SX1->( dbSetFilter({|| &cFilter},cFilter) )
+                SX1->( dbGoTop() )
+
+                SX1->(__dbCopy((RetFileName(cName)),{},,,,,.F.,oRequest:driver/*"DBFCDXADS"*/))
+
+            case upper( allTrim( oRequest:tipo ) ) == 'SX2'
+
+                // MONTA O FILTRO PODE PASSAR MAIS DE UMA TABELA
+                for nX := 1 to len(oRequest:estrutura)
+                    if nX == len(oRequest:estrutura)
+                        cFilter += "X2_CHAVE == '" + PadR(oRequest:estrutura[nX],03,'') + "' "
+                    else
+                        cFilter += "X2_CHAVE == '" + PadR(oRequest:estrutura[nX],03,'') + "' .OR. "
+                    endif
+                next 
+                
+                //Aplica o Filtro 
+                dbSelectArea('SX2')
+                SX2->( dbSetFilter({|| &cFilter},cFilter) )
+                SX2->( dbGoTop() )
+
+                SX2->(__dbCopy((RetFileName(cName)),{},,,,,.F.,oRequest:driver/*"DBFCDXADS"*/))
+
+            case upper( allTrim( oRequest:tipo ) ) == 'SX3'
+
+                nPos := aScan(oRequest:estrutura,{|x| '*' $ (x) })
+
+                if nPos > 0
+                    cFilter := "X3_ARQUIVO == '" + left(oRequest:estrutura[nPos],3) + "' " 
+                else
+                
+                    // MONTA O FILTRO PODE PASSAR MAIS DE CAMPO
+                    for nX := 1 to len(oRequest:estrutura)
+                        
+                        if nX == len(oRequest:estrutura)
+                            cFilter += "X3_CAMPO == '" + PadR(oRequest:estrutura[nX],10,'') + "' "
+                        else
+                            cFilter += "X3_CAMPO == '" + PadR(oRequest:estrutura[nX],10,'')  + "' .OR. "
+                        endif
+                    next 
+                endif
+                
+                //Aplica o Filtro 
+                dbSelectArea('SX3')
+                SX3->( dbSetFilter({|| &cFilter},cFilter) )
+                SX3->( dbGoTop() )
+
+                SX3->(__dbCopy((RetFileName(cName)),{},,,,,.F.,oRequest:driver/*"DBFCDXADS"*/))
+
+            case upper( allTrim( oRequest:tipo ) ) == 'SX6'
+
+                // MONTA O FILTRO PODE PASSAR MAIS DE PARAMETRO
+                for nX := 1 to len(oRequest:estrutura)
+                    if nX == len(oRequest:estrutura)
+                        cFilter += "X6_VAR == '" + PadR(oRequest:estrutura[nX],10,'') + "' "
+                    else
+                        cFilter += "X6_VAR == '" + PadR(oRequest:estrutura[nX],10,'') + "' .OR. "
+                    endif
+                next 
+                
+                //Aplica o Filtro 
+                dbSelectArea('SX6')
+                SX6->( dbSetFilter({|| &cFilter},cFilter) )
+                SX6->( dbGoTop() )
+
+                SX6->(__dbCopy((RetFileName(cName)),{},,,,,.F.,oRequest:driver/*"DBFCDXADS"*/))
+
+            case upper( allTrim( oRequest:tipo ) ) == 'SX7'
+
+                // MONTA O FILTRO PODE PASSAR MAIS DE GATILHO
+                for nX := 1 to len(oRequest:estrutura)
+                    if nX == len(oRequest:estrutura)
+                        cFilter += "X7_CAMPO == '" + PadR(oRequest:estrutura[nX],10,'') + "' "
+                    else
+                        cFilter += "X7_CAMPO == '" + PadR(oRequest:estrutura[nX],10,'') + "' .OR. "
+                    endif
+                next 
+                
+                //Aplica o Filtro 
+                dbSelectArea('SX7')
+                SX7->( dbSetFilter({|| &cFilter},cFilter) )
+                SX7->( dbGoTop() )
+
+                SX7->(__dbCopy((RetFileName(cName)),{},,,,,.F.,oRequest:driver/*"DBFCDXADS"*/))
+
+            case upper( allTrim( oRequest:tipo ) ) == 'SXB'
+
+                // MONTA O FILTRO PODE PASSAR MAIS DE UMA CONSULTA
+                for nX := 1 to len(oRequest:estrutura)
+                    if nX == len(oRequest:estrutura)
+                        cFilter += "XB_ALIAS == '" + PadR(oRequest:estrutura[nX],06,'') + "' "
+                    else
+                        cFilter += "XB_ALIAS == '" + PadR(oRequest:estrutura[nX],06,'') + "' .OR. "
+                    endif
+                next 
+                
+                //Aplica o Filtro 
+                dbSelectArea('SXB')
+                SXB->( dbSetFilter({|| &cFilter},cFilter) )
+                SXB->( dbGoTop() )
+
+                SXB->(__dbCopy((RetFileName(cName)),{},,,,,.F.,oRequest:driver/*"DBFCDXADS"*/))
+
+            case upper( allTrim( oRequest:tipo ) ) == 'SIX'
+
+                // MONTA O FILTRO PODE PASSAR MAIS DE UM INDICE
+                for nX := 1 to len(oRequest:estrutura)
+                    if nX == len(oRequest:estrutura)
+                        cFilter += "INDICE == '" + PadR(oRequest:estrutura[nX],03,'') + "' "
+                    else
+                        cFilter += "INDICE == '" + PadR(oRequest:estrutura[nX],03,'') + "' .OR. "
+                    endif
+                next 
+                
+                //Aplica o Filtro 
+                dbSelectArea('SIX')
+                SIX->( dbSetFilter({|| &cFilter},cFilter) )
+                SIX->( dbGoTop() )
+
+                SIX->(__dbCopy((RetFileName(cName)),{},,,,,.F.,oRequest:driver/*"DBFCDXADS"*/))
+            
+        endCase
+        
+        if file( GetSrvProfString("Startpath","") + cFile )
+                    
+            if right(oRequest:diretorio,1) != '/'
+                oRequest:diretorio := oRequest:diretorio + '/'
+            endif
+
+            if !( __CopyFile( GetSrvProfString("Startpath","") + cFile , oRequest:diretorio + cFile ) )
+                SetRestFault(400, 'erro ao copiar arquivo para: ' + oRequest:diretorio)
+                lRet := .F.
+            else                        
+                oJson:PutVal("result",.T.)
+                oJson:PutVal("mensagem",'arquivo copiado com sucesso para: ' + oRequest:diretorio + cFile)
+                FErase( GetSrvProfString("Startpath","") + cFile ) 
+                ::SetResponse( oJson:ToJson() )
+            endif
+        else
+            SetRestFault(400, 'nao foi possivel gerar arquivo: ' + cFile)
+            lRet := .F.
+        endif        
+
+       
+    else
+        SetRestFault(400, "Nao foi possivel realizar o parser!")
+        lRet := .F.
+    endif
+    
+endif
+
+return lRet
+
+
+//--------------------------------------------------------
+
+WSRESTFUL EstruturaSxs DESCRIPTION "Retorna a estrutura de um dicionario" FORMAT "application/json"
+
+WSDATA Tipo 		AS STRING OPTIONAL
+WSDATA Valor 		AS STRING OPTIONAL
+WSDATA Filial 		AS STRING OPTIONAL 
+WSDATA Ordem 		AS STRING OPTIONAL
+WSDATA Sequencia	AS STRING OPTIONAL
+
+WSMETHOD GET  DESCRIPTION "Retorna a estrutura de um dicionario" 	PRODUCES APPLICATION_JSON
+
+END WSRESTFUL
+
+//---------
+WSMETHOD GET  WSRECEIVE Tipo, Valor, Filial, Ordem, Sequencia WSSERVICE EstruturaSxs
+
+Local cBusca        := ""
+Local nTamSXs       := 0
+Local nI            := 0
+Local cResponse     := ""
+Local cTitulo
+Local xConteudo
+Local nOrder        := 1
+Local cDicionario   := ""
+Local cFilSelect := If(Empty(self:Filial) , Space(Len(cFilAnt)) , self:Filial )
+Local cIndice       := ""
+
+If Upper(self:Tipo) == 'TABELA'
+
+    cDicionario := 'SX2'
+    nOrder  := 1
+    cIndice := 'X2_CHAVE'
+    cBusca  := readValue(cDicionario, nOrder, PadR(Upper(self:Valor),3) , cIndice)
+
+    If Empty(cBusca)
+        cResponse +=    '{"result":false, "msg":"Tabela não encontrado no dicionário de dados", "estrutura":[]}'
+        Self:SetResponse(cResponse)
+        Return .T.
+    EndIf
+
+ElseIf Upper(self:Tipo) == 'CAMPO'
+
+    cDicionario := 'SX3'
+    nOrder  := 2
+    cIndice := 'X3_CAMPO'
+    cBusca  := readValue(cDicionario, nOrder, PadR(Upper(self:Valor),10) , cIndice)
+
+    If Empty(cBusca)
+        cResponse +=    '{"result":false, "msg":"Campo não encontrado no dicionário de dados", "estrutura":[]}'
+        Self:SetResponse(cResponse)
+        Return .T.
+    EndIf
+
+ElseIf Upper(self:Tipo) == 'PARAMETRO'
+
+    cDicionario := 'SX6'
+    nOrder  := 1
+    cIndice := 'X6_FIL+X6_VAR'
+    cBusca  := readValue(cDicionario, nOrder, cFilSelect + PadR(Upper(self:Valor),10) , cIndice)
+
+    If Empty(cBusca)
+        cResponse +=    '{"result":false, "msg":"Parametro não encontrado no dicionário de dados", "estrutura":[]}'
+        Self:SetResponse(cResponse)
+        Return .T.
+    EndIf
+
+ElseIf Upper(self:Tipo) == 'GATILHO'
+
+    cDicionario := 'SX7'
+    nOrder  := 1
+    cIndice := 'X7_CAMPO+X7_SEQUENC'
+    cBusca  := readValue(cDicionario, nOrder, PadR(Upper(self:Valor),10) + self:Sequencia, cIndice)
+
+    If Empty(cBusca)
+        cResponse +=    '{"result":false, "msg":"Gatilho não encontrado no dicionário de dados", "estrutura":[]}'
+        Self:SetResponse(cResponse)
+        Return .T.
+    EndIf
+
+ElseIf Upper(self:Tipo) == 'INDICE'
+
+    cDicionario := 'SIX'
+    nOrder  := 1
+    cIndice := 'INDICE+ORDEM'
+    cBusca  := readValue(cDicionario, nOrder, PadR(Upper(self:Valor),3) + self:Ordem , cIndice)
+
+    If Empty(cBusca)
+        cResponse +=    '{"result":false, "msg":"Indice não encontrado no dicionário de dados", "estrutura":[]}'
+        Self:SetResponse(cResponse)
+        Return .T.
+    EndIf
+
+ElseIf Upper(self:Tipo) == 'CONSULTA'
+
+    cDicionario := 'SXB'
+    nOrder  := 1
+    cIndice := 'XB_ALIAS'
+    cBusca  := readValue(cDicionario, nOrder, PadR(Upper(self:Valor),6) , cIndice)
+
+    If Empty(cBusca)
+        cResponse +=    '{"result":false, "msg":"Consulta não encontrado no dicionário de dados", "estrutura":[]}'
+        Self:SetResponse(cResponse)
+        Return .T.
+    EndIf
+
+EndIf
+
+dbSelectArea(cDicionario)
+dbSetOrder(nOrder)
+dbSeek(cBusca)
+
+nTamSXs := FCOUNT()
+
+//Retorno Geral
+cResponse += '{"result":true, "msg":"Estrutura encontrada",' 
+
+//Retorno dos itens
+cResponse += '"estrutura":[' 
+
+While &(cDicionario)->( &(cIndice)) == cBusca
+
+    cResponse += '{' 
+
+    For nI:=1 to nTamSXs
+        cTitulo := FIELD(nI)
+        xConteudo := &(cDicionario)->( &(cTitulo) )
+
+        if ValType(xConteudo) == 'C'
+
+            xConteudo := AllTrim( StrTran(xConteudo, '"', "'") )
+
+            If cTitulo $ "X3_USADO;X3_RESERV"
+                cResponse +=   ' "'+ cTitulo +'": "'+ Encode64( xConteudo ) +'" '
+            Else                
+                cResponse +=   ' "'+ cTitulo +'": "'+ xConteudo +'" '
+            EndIf
+
+        ElseIf ValType(xConteudo) == 'N'
+
+            cResponse +=   ' "'+ cTitulo +'": '+ cValToChar(xConteudo) +' '
+
+        ElseIf ValType(xConteudo) == 'L'
+
+            cResponse +=   ' "'+ cTitulo +'": '+ Iif(xConteudo,"true","false") +' '
+
+        Endif
+
+        if nI != nTamSXs
+            cResponse +=',' 
+        Endif
+    Next nI
+
+    cResponse += '}' 
+    
+    dbSkip()
+    If &(cDicionario)->( &(cIndice)) == cBusca
+        cResponse +=','
+    EndIf
+
+EndDo
+
+cResponse +=']' 
+cResponse +='}' 
+
+DBCloseArea()
+    
+Self:SetResponse(cResponse)
+Return .T.
+
+
+//--------------------------------------------------------
+
+WSRESTFUL NomeCampos DESCRIPTION "Retorna o nome dos campos de uma tabela" FORMAT "application/json"
+
+WSDATA Tabela	AS STRING
+
+WSMETHOD GET  DESCRIPTION "Retorna o nome dos campos de uma tabela" 	PRODUCES APPLICATION_JSON
+
+END WSRESTFUL
+
+//---------
+WSMETHOD GET  WSRECEIVE Tabela WSSERVICE NomeCampos
+
+Local nTamanho  := 0
+Local nI        := 0
+Local aCampos   := {}
+Local oJson     := JsonUtil():New()
+
+If Empty(Self:Tabela)
+    oJson:PutVal("result",.F.)
+    oJson:PutVal("msg","Tabela não informada")
+    oJson:PutVal("campos",aCampos)
+    Self:SetResponse( oJson:ToJson() )    
+    Return .T.
+EndIf
+
+dbSelectArea(Self:Tabela)
+nTamanho := FCOUNT()
+
+For nI:=1 to nTamanho
+    aAdd(aCampos , FIELD(nI) ) 
+Next nI
+
+DBCloseArea()
+
+oJson:PutVal("result",.T.)
+oJson:PutVal("msg","Consulta realizada")
+oJson:PutVal("campos",aCampos)
+Self:SetResponse( oJson:ToJson() )    
+Return .T.
+
+//--------------------------------------------------------
+
+WSRESTFUL AtributoCampo DESCRIPTION "Retorna se o conteudo de um atributo de um campo, esta correto" FORMAT "application/json"
+
+WSDATA Campo	AS STRING
+WSDATA Atributo	AS STRING
+WSDATA Valor	AS STRING
+
+WSMETHOD GET  DESCRIPTION "Retorna se o conteudo de um atributo de um campo, esta correto" 	PRODUCES APPLICATION_JSON
+
+END WSRESTFUL
+//---------
+WSMETHOD GET  WSRECEIVE Campo, Atributo, Valor WSSERVICE AtributoCampo
+
+Local oJson     := JsonUtil():New()
+Local xValorAmb
+Local lRet := .F.
+Local cMsg := "Atributo de campo desatualizado"
+
+If Empty(Self:Campo) .Or. Empty(Self:Atributo) .Or. Empty(Self:Valor)
+    SetRestFault(400, 'Campo, Atributo ou Valor não informado') 
+    Return .T.
+EndIf
+
+xValorAmb   := readValue('SX3', 2, PadR(Upper(Self:Campo),10) , Upper(Self:Atributo))
+
+If AllTrim( cValToChar(xValorAmb) ) == Self:Valor
+    lRet := .T.
+    cMsg := "Atributo de campo atualizado"
+EndIf
+
+DBCloseArea()
+
+oJson:PutVal("result",lRet)
+oJson:PutVal("msg",cMsg)
+Self:SetResponse( oJson:ToJson() )    
+Return .T.
+
+
+//--------------------------------------------------------
+
+WSRESTFUL VerificaConsulta DESCRIPTION "Retorna se uma consulta existe" FORMAT "application/json"
+
+WSDATA Consulta	AS STRING
+
+WSMETHOD GET  DESCRIPTION "Retorna se uma consulta existe" 	PRODUCES APPLICATION_JSON
+
+END WSRESTFUL
+//---------
+WSMETHOD GET  WSRECEIVE Consulta WSSERVICE VerificaConsulta
+
+Local oJson     := JsonUtil():New()
+Local lRet := .F.
+Local cMsg := "Consulta não existe"
+
+If Empty(Self:Consulta)
+    SetRestFault(400, 'Consulta não informada') 
+    Return .T.
+EndIf
+
+dbSelectArea('SXB')
+dbSetOrder(1)
+
+IF dbSeek( PadR(Upper(self:Consulta),6) )
+    lRet := .T.
+    cMsg := "Consulta existe"
+EndIf
+
+DBCloseArea()
+
+oJson:PutVal("result",lRet)
+oJson:PutVal("msg",cMsg)
+Self:SetResponse( oJson:ToJson() )    
+Return .T.
+
+//--------------------------------------------------------
+
+WSRESTFUL VerificaGatilho DESCRIPTION "Retorna se um Gatilho existe" FORMAT "application/json"
+
+WSDATA Gatilho	AS STRING
+WSDATA Sequencia	AS STRING
+
+WSMETHOD GET  DESCRIPTION "Retorna se um Gatilho existe" 	PRODUCES APPLICATION_JSON
+
+END WSRESTFUL
+//---------
+WSMETHOD GET  WSRECEIVE Gatilho, Sequencia WSSERVICE VerificaGatilho
+
+Local oJson     := JsonUtil():New()
+Local lRet := .F.
+Local cMsg := "Gatilho não existe"
+
+If Empty(Self:Gatilho) .Or. Empty(Self:Sequencia)
+    SetRestFault(400, 'Gatilho ou Sequencia não informado') 
+    Return .T.
+EndIf
+
+dbSelectArea('SX7')
+dbSetOrder(1)
+
+IF dbSeek( PadR(Upper(self:Gatilho),10) + self:Sequencia)
+    lRet := .T.
+    cMsg := "Gatilho existe"
+EndIf
+
+DBCloseArea()
+
+oJson:PutVal("result",lRet)
+oJson:PutVal("msg",cMsg)
+Self:SetResponse( oJson:ToJson() )    
+Return .T.
+
+
+//--------------------------------------------------------
+
+WSRESTFUL GravaCampo DESCRIPTION "Recupera o dado de uma base e grava na corrente" FORMAT "application/json"
+
+WSDATA Origem	AS STRING
+WSDATA Campo	AS STRING
+
+WSMETHOD POST  DESCRIPTION "Recupera o dado de uma base e grava na corrente" 	PRODUCES APPLICATION_JSON
+
+END WSRESTFUL
+//--------
+WSMETHOD POST WSSERVICE GravaCampo
+
+Local lRet      := .T.
+Local oJson     := JsonUtil():New()
+Local cBody     := Self:GetContent()
+Local nX        := 0
+Local nHeader  := 0
+Local oRequest
+Local oRestClient
+Local oReqAux
+Local xConteudo
+
+
+if empty(cBody)
+    SetRestFault(400, "Parametros obrigatorios nao informados no body!")
+    lRet := .F.
+else
+
+    if fWJsonDeserialize(alltrim(cBody),@oRequest)
+
+        oRestClient := FWRest():New(oRequest:Origem)
+        oRestClient:setPath("/EstruturaSxs?tipo=campo&valor=" + oRequest:Campo)
+        If oRestClient:Get()
+
+            if fWJsonDeserialize(oRestClient:GetResult(),@oReqAux)
+
+                If oReqAux:Result
+                
+                    dbSelectArea('SX3')
+                    nHeader := FCOUNT()
+
+                    RecLock('SX3', .T.)
+
+                        For nX:=1 to nHeader
+                            cTitulo := FIELD(nX)
+                            xConteudo := &('oReqAux:estrutura[1]:'+ cTitulo)
+
+                            If cTitulo $ "X3_USADO;X3_RESERV"
+                                SX3->( &(cTitulo) ) := Decode64( xConteudo )
+                            Else                
+                                SX3->( &(cTitulo) ) := xConteudo
+                            EndIf
+
+                        Next nX
+
+                    MsUnlock()
+
+                    DBCloseArea()
+
+                    oJson:PutVal("result",lRet)
+                    oJson:PutVal("msg","Copia realizada")
+                    Self:SetResponse( oJson:ToJson() )  
+                Else
+                    SetRestFault(400, "Erro na Origem: " + oReqAux:Msg)
+                    lRet := .F.
+                endif
+            else
+                SetRestFault(400, "Nao foi possivel realizar o parser do EstruturaSxs!")
+                lRet := .F.
+            EndIf
+
+            
+        Else
+            conout(oRestClient:GetLastError())
+            SetRestFault(400, "Nao foi possivel buscar dados na origem!")
+            lRet := .F.
+        Endif
+
+    else
+        SetRestFault(400, "Nao foi possivel realizar o parser do GravaCampo!")
+        lRet := .F.
+    EndIf
+
+EndIf
+
+Return lRet
+
+
+//--------------------------------------------------------
+
+WSRESTFUL GravaAtributoCampo DESCRIPTION "Recupera o dado de uma base e grava na corrente" FORMAT "application/json"
+
+WSDATA Origem	AS STRING
+WSDATA Campo	AS STRING
+WSDATA Atributo	AS STRING
+
+WSMETHOD PUT  DESCRIPTION "Recupera o dado de uma base e grava na corrente" 	PRODUCES APPLICATION_JSON
+
+END WSRESTFUL
+//--------
+WSMETHOD PUT WSSERVICE GravaAtributoCampo
+
+Local lRet      := .T.
+Local oJson     := JsonUtil():New()
+Local cBody     := Self:GetContent()
+Local oRequest
+Local cAtributo
+Local cOrigem
+Local cCampo
+Local oRestClient
+Local oReqAux
+Local xConteudo
+
+
+if empty(cBody)
+    SetRestFault(400, "Parametros obrigatorios nao informados no body!")
+    lRet := .F.
+else
+
+    if fWJsonDeserialize(alltrim(cBody),@oRequest)
+
+        cOrigem := oRequest:Origem
+        cCampo := oRequest:Campo
+        cAtributo := oRequest:Atributo
+
+        oRestClient := FWRest():New(cOrigem)
+        oRestClient:setPath("/EstruturaSxs?tipo=campo&valor=" + cCampo)
+        
+
+        If oRestClient:Get()
+
+            if fWJsonDeserialize(oRestClient:GetResult(),@oReqAux)
+
+                If oReqAux:Result
+                
+                    dbSelectArea('SX3')
+                    dbSetOrder(2)
+                    If dbSeek(PadR(Upper(cCampo),10))
+                        RecLock('SX3', .F.)
+
+                            cTitulo := cAtributo
+                            xConteudo := &('oReqAux:estrutura[1]:'+ cTitulo)
+
+                            If cTitulo $ "X3_USADO;X3_RESERV"
+                                SX3->( &(cTitulo) ) := Decode64( xConteudo )
+                            Else                
+                                SX3->( &(cTitulo) ) := xConteudo
+                            EndIf
+
+                        MsUnlock()
+                    else
+                        SetRestFault(400, "Campo não encontrado no Destino")
+                        lRet := .F.
+                    EndIf
+
+                    DBCloseArea()
+
+                    oJson:PutVal("result",lRet)
+                    oJson:PutVal("msg","Copia realizada")
+                    Self:SetResponse( oJson:ToJson() )  
+                Else
+                    SetRestFault(400, "Erro na Origem: " + oReqAux:Msg)
+                    lRet := .F.
+                endif
+            else
+                SetRestFault(400, "Nao foi possivel realizar o parser do EstruturaSxs!")
+                lRet := .F.
+            EndIf
+
+            
+        Else
+            conout(oRestClient:GetLastError())
+            SetRestFault(400, "Nao foi possivel buscar dados na origem!")
+            lRet := .F.
+        Endif
+
+    else
+        SetRestFault(400, "Nao foi possivel realizar o parser do GravaCampo!")
+        lRet := .F.
+    EndIf
+
+EndIf
+
+Return lRet
+
+
+//--------------------------------------------------------
+
+WSRESTFUL GravaParametro DESCRIPTION "Recupera o dado de uma base e grava na corrente" FORMAT "application/json"
+
+WSDATA Origem	AS STRING
+WSDATA Parametro	AS STRING
+WSDATA Filial	AS STRING
+
+WSMETHOD POST  DESCRIPTION "Recupera o dado de uma base e grava na corrente" 	PRODUCES APPLICATION_JSON
+
+END WSRESTFUL
+//--------
+WSMETHOD POST WSSERVICE GravaParametro
+
+Local lRet      := .T.
+Local oJson     := JsonUtil():New()
+Local cBody     := Self:GetContent()
+Local nX        := 0
+Local nHeader  := 0
+Local oRequest
+Local oRestClient
+Local oReqAux
+Local xConteudo
+
+
+if empty(cBody)
+    SetRestFault(400, "Parametros obrigatorios nao informados no body!")
+    lRet := .F.
+else
+
+    if fWJsonDeserialize(alltrim(cBody),@oRequest)
+
+        oRestClient := FWRest():New(oRequest:Origem)
+        oRestClient:setPath("/EstruturaSxs?tipo=parametro&valor=" + oRequest:Parametro + "&filial="+ oRequest:Filial)
+        If oRestClient:Get()
+
+            if fWJsonDeserialize(oRestClient:GetResult(),@oReqAux)
+
+                If oReqAux:Result
+                
+                    dbSelectArea('SX6')
+                    nHeader := FCOUNT()
+
+                    RecLock('SX6', .T.)
+
+                        For nX:=1 to nHeader
+                            cTitulo := FIELD(nX)
+                            xConteudo := &('oReqAux:estrutura[1]:'+ cTitulo)
+
+                            SX6->( &(cTitulo) ) := xConteudo
+
+                        Next nX
+
+                    MsUnlock()
+
+                    DBCloseArea()
+
+                    oJson:PutVal("result",lRet)
+                    oJson:PutVal("msg","Copia realizada")
+                    Self:SetResponse( oJson:ToJson() )  
+                Else
+                    SetRestFault(400, "Erro na Origem: " + oReqAux:Msg)
+                    lRet := .F.
+                endif
+            else
+                SetRestFault(400, "Nao foi possivel realizar o parser do EstruturaSxs!")
+                lRet := .F.
+            EndIf
+
+            
+        Else
+            conout(oRestClient:GetLastError())
+            SetRestFault(400, "Nao foi possivel buscar dados na origem!")
+            lRet := .F.
+        Endif
+
+    else
+        SetRestFault(400, "Nao foi possivel realizar o parser do GravaCampo!")
+        lRet := .F.
+    EndIf
+
+EndIf
+
+Return lRet
+
+//--------------------------------------------------------
+
+WSRESTFUL GravaAtributoParametro DESCRIPTION "Recupera o dado de uma base e grava na corrente" FORMAT "application/json"
+
+WSDATA Origem	AS STRING
+WSDATA Parametro	AS STRING
+WSDATA Filial	AS STRING
+WSDATA Atributo	AS STRING
+
+WSMETHOD PUT  DESCRIPTION "Recupera o dado de uma base e grava na corrente" 	PRODUCES APPLICATION_JSON
+
+END WSRESTFUL
+//--------
+WSMETHOD PUT WSSERVICE GravaAtributoParametro
+
+Local lRet      := .T.
+Local oJson     := JsonUtil():New()
+Local cBody     := Self:GetContent()
+Local oRequest
+Local cAtributo
+Local cOrigem
+Local cFilSelect
+Local cParametro
+Local oRestClient
+Local oReqAux
+Local xConteudo
+
+
+if empty(cBody)
+    SetRestFault(400, "Parametros obrigatorios nao informados no body!")
+    lRet := .F.
+else
+
+    if fWJsonDeserialize(alltrim(cBody),@oRequest)
+
+        cOrigem := oRequest:Origem
+        cFilSelect := If(Empty(oRequest:Filial) , Space(Len(cFilAnt)) ,oRequest:Filial )
+        cParametro := oRequest:Parametro
+        cAtributo := oRequest:Atributo
+
+        oRestClient := FWRest():New(cOrigem)
+        oRestClient:setPath("/EstruturaSxs?tipo=parametro&valor=" + oRequest:Parametro + "&filial="+ oRequest:Filial)
+        
+
+        If oRestClient:Get()
+
+            if fWJsonDeserialize(oRestClient:GetResult(),@oReqAux)
+
+                If oReqAux:Result
+                
+                    dbSelectArea('SX6')
+                    dbSetOrder(1)
+                        
+                    If dbSeek( cFilSelect + PadR(Upper(cParametro),10) )
+                        RecLock('SX6', .F.)
+
+                            cTitulo := cAtributo
+                            xConteudo := &('oReqAux:estrutura[1]:'+ cTitulo)
+        
+                             SX6->( &(cTitulo) ) := xConteudo
+
+                        MsUnlock()
+                    else
+                        SetRestFault(400, "Parametro não encontrado no Destino")
+                        lRet := .F.
+                    EndIf
+
+                    DBCloseArea()
+
+                    oJson:PutVal("result",lRet)
+                    oJson:PutVal("msg","Copia realizada")
+                    Self:SetResponse( oJson:ToJson() )  
+                Else
+                    SetRestFault(400, "Erro na Origem: " + oReqAux:Msg)
+                    lRet := .F.
+                endif
+            else
+                SetRestFault(400, "Nao foi possivel realizar o parser do EstruturaSxs!")
+                lRet := .F.
+            EndIf
+
+            
+        Else
+            conout(oRestClient:GetLastError())
+            SetRestFault(400, "Nao foi possivel buscar dados na origem!")
+            lRet := .F.
+        Endif
+
+    else
+        SetRestFault(400, "Nao foi possivel realizar o parser do GravaCampo!")
+        lRet := .F.
+    EndIf
+
+EndIf
+
+Return lRet
+
+
+//--------------------------------------------------------
+
+WSRESTFUL GravaGatilho DESCRIPTION "Recupera o dado de uma base e grava na corrente" FORMAT "application/json"
+
+WSDATA Origem	AS STRING
+WSDATA Gatilho	AS STRING
+WSDATA Sequencia AS STRING
+
+WSMETHOD POST  DESCRIPTION "Recupera o dado de uma base e grava na corrente" 	PRODUCES APPLICATION_JSON
+
+END WSRESTFUL
+//--------
+WSMETHOD POST WSSERVICE GravaGatilho
+
+Local lRet      := .T.
+Local oJson     := JsonUtil():New()
+Local cBody     := Self:GetContent()
+Local nX        := 0
+Local nHeader  := 0
+Local oRequest
+Local oRestClient
+Local oReqAux
+Local xConteudo
+
+
+if empty(cBody)
+    SetRestFault(400, "Parametros obrigatorios nao informados no body!")
+    lRet := .F.
+else
+
+    if fWJsonDeserialize(alltrim(cBody),@oRequest)
+
+        oRestClient := FWRest():New(oRequest:Origem)
+        oRestClient:setPath("/EstruturaSxs?tipo=gatilho&valor=" + oRequest:Gatilho + "&sequencia="+ oRequest:Sequencia)
+        If oRestClient:Get()
+
+            if fWJsonDeserialize(oRestClient:GetResult(),@oReqAux)
+
+                If oReqAux:Result
+
+                    dbSelectArea('SX7')
+                    nHeader := FCOUNT()
+
+                    RecLock('SX7', .T.)
+
+                        For nX:=1 to nHeader
+                            cTitulo := FIELD(nX)
+                            xConteudo := &('oReqAux:estrutura[1]:'+ cTitulo)
+
+                            SX7->( &(cTitulo) ) := xConteudo
+
+                        Next nX
+
+                    MsUnlock()
+
+                    DBCloseArea()
+
+                    oJson:PutVal("result",lRet)
+                    oJson:PutVal("msg","Copia realizada")
+                    Self:SetResponse( oJson:ToJson() )  
+                Else
+                    SetRestFault(400, "Erro na Origem: " + oReqAux:Msg)
+                    lRet := .F.
+                endif
+            else
+                SetRestFault(400, "Nao foi possivel realizar o parser do EstruturaSxs!")
+                lRet := .F.
+            EndIf
+
+            
+        Else
+            conout(oRestClient:GetLastError())
+            SetRestFault(400, "Nao foi possivel buscar dados na origem!")
+            lRet := .F.
+        Endif
+
+    else
+        SetRestFault(400, "Nao foi possivel realizar o parser do GravaCampo!")
+        lRet := .F.
+    EndIf
+
+EndIf
+
+Return lRet
+
+//--------------------------------------------------------
+
+WSRESTFUL GravaConsulta DESCRIPTION "Recupera o dado de uma base e grava na corrente" FORMAT "application/json"
+
+WSDATA Origem	AS STRING
+WSDATA Consulta	AS STRING
+
+WSMETHOD POST  DESCRIPTION "Recupera o dado de uma base e grava na corrente" 	PRODUCES APPLICATION_JSON
+
+END WSRESTFUL
+//--------
+WSMETHOD POST WSSERVICE GravaConsulta
+
+Local lRet      := .T.
+Local oJson     := JsonUtil():New()
+Local cBody     := Self:GetContent()
+Local nX        := 0
+Local nI        := 0
+Local nHeader  := 0
+Local oRequest
+Local oRestClient
+Local oReqAux
+Local xConteudo
+
+
+if empty(cBody)
+    SetRestFault(400, "Parametros obrigatorios nao informados no body!")
+    lRet := .F.
+else
+
+    if fWJsonDeserialize(alltrim(cBody),@oRequest)
+
+        oRestClient := FWRest():New(oRequest:Origem)
+        oRestClient:setPath("/EstruturaSxs?tipo=consulta&valor=" + oRequest:Consulta)
+        If oRestClient:Get()
+
+            if fWJsonDeserialize(oRestClient:GetResult(),@oReqAux)
+
+                If oReqAux:Result
+
+                    dbSelectArea('SXB')
+                    nHeader := FCOUNT()
+                 
+                    For nI:=1 to Len(oReqAux:estrutura)
+
+                        RecLock('SXB', .T.)
+                            For nX:=1 to nHeader
+                                cTitulo := FIELD(nX)
+                                xConteudo := &('oReqAux:estrutura[' + cValToChar(nI) + ']:'+ cTitulo)
+
+                                SXB->( &(cTitulo) ) := xConteudo
+
+                            Next nX
+                        MsUnlock()
+
+                    Next nI
+
+                    DBCloseArea()
+
+                    oJson:PutVal("result",lRet)
+                    oJson:PutVal("msg","Copia realizada")
+                    Self:SetResponse( oJson:ToJson() )  
+                Else
+                    SetRestFault(400, "Erro na Origem: " + oReqAux:Msg)
+                    lRet := .F.
+                endif
+            else
+                SetRestFault(400, "Nao foi possivel realizar o parser do EstruturaSxs!")
+                lRet := .F.
+            EndIf
+
+            
+        Else
+            conout(oRestClient:GetLastError())
+            SetRestFault(400, "Nao foi possivel buscar dados na origem!")
+            lRet := .F.
+        Endif
+
+    else
+        SetRestFault(400, "Nao foi possivel realizar o parser do GravaCampo!")
+        lRet := .F.
+    EndIf
+
+EndIf
+
+Return lRet
+
+
 // //--------------------------------------------------------
 // //--------------------------------------------------------
 // //--------------------------------------------------------
-// // ESTE EXEMPLO UTILIZA O WS CLIENT COMPILADO
+// // FUNCOES DE APOIO
 // //--------------------------------------------------------
 // //--------------------------------------------------------
 // //--------------------------------------------------------
 
-// WSRESTFUL VerificaFonte DESCRIPTION "Verifica Fonte" FORMAT "application/json"
+Static Function EspecMsg(cTexto)
 
-// WSDATA Collection 		AS STRING OPTIONAL
-// WSDATA ChangeSet 		AS STRING OPTIONAL
+Default cTexto := ""
 
-// WSMETHOD GET  DESCRIPTION "Verifica Fonte" 	PRODUCES APPLICATION_JSON
+cTexto := strtran(cTexto, CHR(1), "")   //
+cTexto := strtran(cTexto, CHR(2), "")   //
+cTexto := strtran(cTexto, CHR(3), "")   //
+cTexto := strtran(cTexto, CHR(4), "")   //
+cTexto := strtran(cTexto, CHR(7), "")   //
+cTexto := strtran(cTexto, CHR(8), "")   //
+cTexto := strtran(cTexto, CHR(10), "")   //
+cTexto := strtran(cTexto, CHR(11), "")  //
+cTexto := strtran(cTexto, CHR(12), "")  //
+cTexto := strtran(cTexto, CHR(13), "")   //
+cTexto := strtran(cTexto, CHR(14), "")  //
+cTexto := strtran(cTexto, CHR(15), "")  //
+cTexto := strtran(cTexto, CHR(16), "")  //
+cTexto := strtran(cTexto, CHR(17), "")  //
+cTexto := strtran(cTexto, CHR(18), "")  //
+cTexto := strtran(cTexto, CHR(19), "")  //
+cTexto := strtran(cTexto, CHR(20), "")  //
+cTexto := strtran(cTexto, CHR(21), "")  //
+cTexto := strtran(cTexto, CHR(22), "")  //
+cTexto := strtran(cTexto, CHR(23), "")  //
+cTexto := strtran(cTexto, CHR(24), "")  //
+cTexto := strtran(cTexto, CHR(25), "")  //
+cTexto := strtran(cTexto, CHR(26), "")  //
+cTexto := strtran(cTexto, CHR(27), "")  //
+cTexto := strtran(cTexto, CHR(28), "")  //
+cTexto := strtran(cTexto, CHR(29), "")  //
+cTexto := strtran(cTexto, CHR(30), "")  //
+cTexto := strtran(cTexto, CHR(31), "")  //
+cTexto := strtran(cTexto, CHR(34), "")  //
+cTexto := strtran(cTexto, CHR(127), "") //
+cTexto := strtran(cTexto, CHR(128), "") //
+cTexto := strtran(cTexto, CHR(131), "") //
+cTexto := strtran(cTexto, CHR(132), "") //
+cTexto := strtran(cTexto, CHR(133), "") //
+cTexto := strtran(cTexto, CHR(134), "") //
+cTexto := strtran(cTexto, CHR(135), "") //
+cTexto := strtran(cTexto, CHR(137), "") //
+cTexto := strtran(cTexto, CHR(138), "") //
+cTexto := strtran(cTexto, CHR(139), "") //
+cTexto := strtran(cTexto, CHR(140), "") //
+cTexto := strtran(cTexto, CHR(142), "") //
+cTexto := strtran(cTexto, CHR(145), "") //
+cTexto := strtran(cTexto, CHR(146), "") //
+cTexto := strtran(cTexto, CHR(147), "") //
+cTexto := strtran(cTexto, CHR(148), "") //
+cTexto := strtran(cTexto, CHR(149), "") //
+cTexto := strtran(cTexto, CHR(152), "") //
+cTexto := strtran(cTexto, CHR(153), "") //
+cTexto := strtran(cTexto, CHR(154), "") //
+cTexto := strtran(cTexto, CHR(155), "") //
+cTexto := strtran(cTexto, CHR(156), "") //
+cTexto := strtran(cTexto, CHR(158), "") //
+cTexto := strtran(cTexto, CHR(159), "") //
+cTexto := strtran(cTexto, CHR(161), "") //
+cTexto := strtran(cTexto, CHR(162), "") //
+cTexto := strtran(cTexto, CHR(163), "") //
+cTexto := strtran(cTexto, CHR(164), "") //
+cTexto := strtran(cTexto, CHR(165), "") //
+cTexto := strtran(cTexto, CHR(166), "") //
+cTexto := strtran(cTexto, CHR(167), "") //
+cTexto := strtran(cTexto, CHR(169), "") //
+cTexto := strtran(cTexto, CHR(171), "") //
+cTexto := strtran(cTexto, CHR(172), "") //
+cTexto := strtran(cTexto, CHR(173), "") //
+cTexto := strtran(cTexto, CHR(175), "") //
+cTexto := strtran(cTexto, CHR(176), "") //
+cTexto := strtran(cTexto, CHR(177), "") //
+cTexto := strtran(cTexto, CHR(178), "") //
+cTexto := strtran(cTexto, CHR(179), "") //
+cTexto := strtran(cTexto, CHR(181), "") //
+cTexto := strtran(cTexto, CHR(182), "") //
+cTexto := strtran(cTexto, CHR(183), "") //
+cTexto := strtran(cTexto, CHR(184), "") //
+cTexto := strtran(cTexto, CHR(185), "") //
+cTexto := strtran(cTexto, CHR(187), "") //
+cTexto := strtran(cTexto, CHR(188), "") //
+cTexto := strtran(cTexto, CHR(189), "") //
+cTexto := strtran(cTexto, CHR(190), "") //
+cTexto := strtran(cTexto, CHR(198), "") //
+cTexto := strtran(cTexto, CHR(208), "") //
+cTexto := strtran(cTexto, CHR(215), "") //
+cTexto := strtran(cTexto, CHR(216), "") //
+cTexto := strtran(cTexto, CHR(221), "") //
+cTexto := strtran(cTexto, CHR(222), "") //
+cTexto := strtran(cTexto, CHR(223), "") //
+cTexto := strtran(cTexto, CHR(230), "") //
+cTexto := strtran(cTexto, CHR(248), "") //
+cTexto := strtran(cTexto, CHR(253), "") //
+cTexto := strtran(cTexto, CHR(254), "") //
+cTexto := strtran(cTexto, CHR(255), "") //
 
-// END WSRESTFUL
-
-// //---------
-// WSMETHOD GET  WSRECEIVE Collection,ChangeSet WSSERVICE VerificaFonte
-
-// Local aArquivos := {}
-// Local nI := 0
-// Local aData := {}
-// Local cFonte
-// Local aFonte
-// Local lRet := .T.
-
-// aArquivos := u_ListArqTFS(::Collection, Val(::ChangeSet) )
-
-// If Len(aArquivos) > 0
-//     For nI:=1 to Len(aArquivos)
-
-//         aData := U_DataArqTFS(aArquivos[nI],::Collection,Val(::ChangeSet) )
-
-//         aFonte := StrTokArr(aArquivos[nI],"/")
-//         cFonte := aFonte[len(aFonte)]
-
-//         //verifica se o fonte existe no RPO
-//         if len(GetSrcArray(cFonte)) > 0
-//             //verifica data e hora
-//             if GetAPOInfo(GetSrcArray(cFonte)[1])[4] < aData[1] .OR.;
-//                 ( GetAPOInfo(GetSrcArray(cFonte)[1])[4] == aData[1] .AND. GetAPOInfo(GetSrcArray(cFonte)[1])[5] < aData[2] )
-//                 lRet := .F.
-//                 Exit
-//             EndIf
-//         Else
-//             lRet := .F.
-//             Exit
-//         endif
-//     Next nI
-
-//     If lRet
-//         Self:SetResponse(    '{"result":true}')
-//         conout("result ok")
-//     Else
-//         Self:SetResponse(    '{"result":false}')
-//         conout("result nok")
-//     EndIf
-// Else
-//     Self:SetResponse(    '{"result":false}')
-// EndIf
-
-// Return .T.
-
-// //-----------------------------------------------------------------------------
-// /*/ {Protheus.doc} Function
-
-// @author 
-// @version 
-// @since 
-// /*/
-// //-----------------------------------------------------------------------------
-// User Function ListArqTFS(cCollection, nChangeSet)
-// Local _oTFS := WSProdControleVersaoService():New()
-// Local _aRet := {}
-// Default nChangeSet := 0
-// Default cCollection := ""
-
-// If !Empty(cCollection) .And. nChangeSet > 0
-// 	_oTFS:cnomeCollection 	:= cCollection   
-// 	_oTFS:nchangeSet		:= nChangeSet
-// 	_oTFS:ListArqChangeset()
-// 	_aRet := _oTFS:OWSLISTARQCHANGESETRESULT:CSTRING
-// EndIf	
-
-// Return _aRet
-
-// //-----------------------------------------------------------------------------
-// /*/ {Protheus.doc} Function
-
-// @author 
-// @version 
-// @since 
-// /*/
-// //-----------------------------------------------------------------------------
-// User Function DataArqTFS(cArquivo,cCollection,cChangeSet)
-// Local _oTFS := WSProdControleVersaoService():New()
-// Local _cRet := ""
-// Local _aRet := {}
-// Default cChangeSet := 0
-// Default cCollection := ""
-// Default cArquivo := ""
-
-// If !Empty(cCollection) .And. cChangeSet > 0 .And. !Empty(cArquivo)
-// 	_oTFS:cnomeCollection 	:= cCollection   
-// 	_oTFS:nchangeSet		:= cChangeSet
-//     _oTFS:ccaminhoArquivo   := cArquivo
-// 	_oTFS:GetDateCheckin()
-// 	_cRet := _oTFS:cGetDateCheckinResult
-
-//     aAdd( _aRet, CtoD(left(_cRet,10)) )
-//     aAdd( _aRet, RIGHT(_cRet,8) )
-// EndIf	
-
-// Return _aRet
-
+Return cTexto
