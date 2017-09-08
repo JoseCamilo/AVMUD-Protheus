@@ -178,11 +178,12 @@ WSRESTFUL VerificaParametro DESCRIPTION "Verifica Parametro" FORMAT "application
     WSDATA Conteud   		AS STRING OPTIONAL
     WSDATA Contspa 		    AS STRING OPTIONAL
     WSDATA Conteng 		    AS STRING OPTIONAL
+    WSDATA Filial 		    AS STRING OPTIONAL
 
     WSMETHOD GET  DESCRIPTION "Verifica Parametro" 	PRODUCES APPLICATION_JSON
 END WSRESTFUL
 
-WSMETHOD GET  WSRECEIVE Parametro,Conteud,Contspa,Conteng WSSERVICE VerificaParametro
+WSMETHOD GET  WSRECEIVE Parametro,Conteud,Contspa,Conteng,Filial WSSERVICE VerificaParametro
  
     Local lStsBra   := .F.
     Local lStsSpa   := .F.
@@ -193,6 +194,10 @@ WSMETHOD GET  WSRECEIVE Parametro,Conteud,Contspa,Conteng WSSERVICE VerificaPara
     Local oConteud  := Nil
     Local oContSpa  := Nil
     Local oContEng  := Nil
+
+    If !Empty(Self:Filial) 
+        cFilAnt := Self:Filial
+    EndIf
 
     If Empty(Self:Parametro)
         SetRestFault(400, 'Parametro que será verificado não foi informado') 
