@@ -29,7 +29,7 @@ WSMETHOD GET  WSRECEIVE Caminho WSSERVICE VerificaFile
 
     If Empty(Self:Caminho)
         SetRestFault(400, 'Caminho do arquivo não informado') 
-        Return .T.
+        Return .F.
     EndIf
 
     If lRet
@@ -68,12 +68,12 @@ WSMETHOD GET  WSRECEIVE Subject,Destinatario,Body WSSERVICE EnviaEmail
 
     Local cLog := ""
     Local lRet := .T.
-    Local cMsg := ""
+    Local cMsg := "Email enviado"
     Local oJson  := JsonUtil():New()
 
     If Empty(Self:Subject) .Or. Empty(Self:Destinatario) .Or. Empty(Self:Body)
         SetRestFault(400, 'Assunto, Destinatário ou Corpo do email não informado') 
-        Return .T.
+        Return .F.
     EndIf
 
     If findfunction("U_xSendMail") .And. U_xSendMail( Self:Destinatario, Self:Subject, Self:Body,,.T., ,,.T.,.t.)
@@ -129,7 +129,7 @@ WSMETHOD GET  WSRECEIVE Campo WSSERVICE VerificaCampo
 
     If Empty(Self:Campo)
         SetRestFault(400, 'Campo que será verificado não foi informado') 
-        Return .T.
+        Return .F.
     EndIf
 
     If Empty(cNomeCampo)
@@ -152,7 +152,7 @@ WSMETHOD GET  WSRECEIVE Campo WSSERVICE VerificaCampo
         
     ElseIf cTipoCampo == 'V'
         lRet := .T.
-        cMsg := "Campo virtual existente no dicionário"}
+        cMsg := "Campo virtual existente no dicionário"
     EndIf
 
     oJson:PutVal("result",lRet)
@@ -164,16 +164,16 @@ WSMETHOD GET  WSRECEIVE Campo WSSERVICE VerificaCampo
 Return .T.
 
 //-------------------------------------------------------------------
-/*/{Protheus.doc} VerificaSX6
+/*/{Protheus.doc} VerificaParametro
 Verifica se o conteudo de um parametro esta correto no ambiente
 @author marllon.fernandes
 @since 29/07/2017
-@wsmethod VerificaSX6
+@wsmethod VerificaParametro
 @verbo GET
 @receiver Nome do parametro e o conteudo em Pt Eng Spa
 @return logico + mensagem + estrutura com valores atuais e status individual
 /*/
-WSRESTFUL VerificaSX6 DESCRIPTION "Verifica Parametro" FORMAT "application/json"
+WSRESTFUL VerificaParametro DESCRIPTION "Verifica Parametro" FORMAT "application/json"
     WSDATA Parametro 		AS STRING OPTIONAL
     WSDATA Conteud   		AS STRING OPTIONAL
     WSDATA Contspa 		    AS STRING OPTIONAL
@@ -182,7 +182,7 @@ WSRESTFUL VerificaSX6 DESCRIPTION "Verifica Parametro" FORMAT "application/json"
     WSMETHOD GET  DESCRIPTION "Verifica Parametro" 	PRODUCES APPLICATION_JSON
 END WSRESTFUL
 
-WSMETHOD GET  WSRECEIVE Parametro,Conteud,Contspa,Conteng WSSERVICE VerificaSX6
+WSMETHOD GET  WSRECEIVE Parametro,Conteud,Contspa,Conteng WSSERVICE VerificaParametro
  
     Local lStsBra   := .F.
     Local lStsSpa   := .F.
@@ -196,7 +196,7 @@ WSMETHOD GET  WSRECEIVE Parametro,Conteud,Contspa,Conteng WSSERVICE VerificaSX6
 
     If Empty(Self:Parametro)
         SetRestFault(400, 'Parametro que será verificado não foi informado') 
-        Return .T.
+        Return .F.
     EndIf
 
     if GetMv(Self:Parametro,.t.)
@@ -229,6 +229,10 @@ WSMETHOD GET  WSRECEIVE Parametro,Conteud,Contspa,Conteng WSSERVICE VerificaSX6
         else
             lStsEng := .F.		
         endif
+
+    else
+        SetRestFault(400, 'Parametro não existe no ambiente') 
+        Return .F.
     endif
 
     if !lStsBra .or. !lStsSpa .or. !lStsEng 
@@ -289,7 +293,7 @@ WSMETHOD GET  WSRECEIVE Collection,Arquivo,ChangeSet WSSERVICE VerificaFonte
 
     If Empty(Self:Collection) .Or. Empty(Self:Arquivo) .Or. Empty(Self:ChangeSet)
         SetRestFault(400, 'Caminho completo, Collection ou Changeset do arquivo que será verificado não foi informado') 
-        Return .T.
+        Return .F.
     EndIf
 
     //Funcoes auxiliares para resultado do TFS
@@ -365,7 +369,7 @@ WSMETHOD GET  WSRECEIVE Collection,ChangeSet WSSERVICE VerificaChangeSet
 
     If Empty(Self:Collection) .Or. Empty(Self:ChangeSet)
         SetRestFault(400, 'Collection ou Changeset dos arquivos que serão verificados não foi informado') 
-        Return .T.
+        Return .F.
     EndIf
 
     aArquivos := u_TListArqTFS(Self:Collection,Self:ChangeSet)
@@ -615,9 +619,9 @@ WSMETHOD GET  WSRECEIVE Alias WSSERVICE VerificaAlias
     Local cMsg  := "Tabela existe no ambiente"
     Local oJson := JsonUtil():New()
 
-    If Empty(Self:Collection) .Or. Empty(Self:ChangeSet)
-        SetRestFault(400, 'Collection ou Changeset dos arquivos que serão verificados não foi informado') 
-        Return .T.
+    If Empty(Self:Alias)
+        SetRestFault(400, 'Tabela que será verificada não foi informada') 
+        Return .F.
     EndIf
  
     Begin Sequence
@@ -641,16 +645,16 @@ WSMETHOD GET  WSRECEIVE Alias WSSERVICE VerificaAlias
 Return .T.
 
 //-------------------------------------------------------------------
-/*/{Protheus.doc} VerificaSIX
+/*/{Protheus.doc} VerificaIndice
 Verifica a existencia do indice fisicamente na tabela
 @author marllon.fernandes
 @since 29/07/2017
-@wsmethod VerificaSIX
+@wsmethod VerificaIndice
 @verbo GET
 @receiver nome da tabela e indice
 @return logico + mensagem
 /*/
-WSRESTFUL VerificaSIX DESCRIPTION "Verifica a existencia do indice fisicamente na tabela" FORMAT "application/json"
+WSRESTFUL VerificaIndice DESCRIPTION "Verifica a existencia do indice fisicamente na tabela" FORMAT "application/json"
     WSDATA alias        AS STRING OPTIONAL
     WSDATA order        AS INTEGER OPTIONAL
     WSDATA nickName     AS STRING OPTIONAL
@@ -658,7 +662,7 @@ WSRESTFUL VerificaSIX DESCRIPTION "Verifica a existencia do indice fisicamente n
     WSMETHOD GET  DESCRIPTION "Verifica a existencia do indice fisicamente na tabela" 	PRODUCES APPLICATION_JSON
 END WSRESTFUL
 
-WSMETHOD GET WSRECEIVE alias, order, nickName WSSERVICE VerificaSIX
+WSMETHOD GET WSRECEIVE alias, order, nickName WSSERVICE VerificaIndice
 
     Local cError := ""
     Local oError := ErrorBlock({|e| cError := e:Description})
@@ -679,10 +683,12 @@ WSMETHOD GET WSRECEIVE alias, order, nickName WSSERVICE VerificaSIX
     If Empty(cError)
         oJson:PutVal("result",.T.)
         oJson:PutVal("msg","Indice existe")
+        oJson:PutVal("obj",{})
         Self:SetResponse( oJson:ToJson() )
     Else
         oJson:PutVal("result",.F.)
         oJson:PutVal("msg",EspecMsg(cError))
+        oJson:PutVal("obj",{})
         Self:SetResponse( oJson:ToJson() )
     EndIf
 
@@ -897,7 +903,8 @@ WSMETHOD PUT WSSERVICE dicFileCreate
                     lRet := .F.
                 else                        
                     oJson:PutVal("result",.T.)
-                    oJson:PutVal("mensagem",'arquivo copiado com sucesso para: ' + oRequest:diretorio + cFile)
+                    oJson:PutVal("msg",'arquivo copiado com sucesso para: ' + oRequest:diretorio + cFile)
+                    oJson:PutVal("obj",{})
                     FErase( GetSrvProfString("Startpath","") + cFile ) 
                     ::SetResponse( oJson:ToJson() )
                 endif
@@ -963,7 +970,7 @@ WSMETHOD GET  WSRECEIVE Tipo, Valor, Filial, Ordem, Sequencia WSSERVICE Estrutur
 
         If Empty(cBusca)
             SetRestFault(400, "Tabela não encontrado no dicionário de dados")
-            Return .T.
+            Return .F.
         EndIf
 
     ElseIf Upper(self:Tipo) == 'CAMPO'
@@ -975,7 +982,7 @@ WSMETHOD GET  WSRECEIVE Tipo, Valor, Filial, Ordem, Sequencia WSSERVICE Estrutur
 
         If Empty(cBusca)
             SetRestFault(400, "Campo não encontrado no dicionário de dados")
-            Return .T.
+            Return .F.
         EndIf
 
     ElseIf Upper(self:Tipo) == 'PARAMETRO'
@@ -987,7 +994,7 @@ WSMETHOD GET  WSRECEIVE Tipo, Valor, Filial, Ordem, Sequencia WSSERVICE Estrutur
 
         If Empty(cBusca)
             SetRestFault(400, "Parametro não encontrado no dicionário de dados")
-            Return .T.
+            Return .F.
         EndIf
 
     ElseIf Upper(self:Tipo) == 'GATILHO'
@@ -999,7 +1006,7 @@ WSMETHOD GET  WSRECEIVE Tipo, Valor, Filial, Ordem, Sequencia WSSERVICE Estrutur
 
         If Empty(cBusca)
             SetRestFault(400, "Gatilho não encontrado no dicionário de dados")        
-            Return .T.
+            Return .F.
         EndIf
 
     ElseIf Upper(self:Tipo) == 'INDICE'
@@ -1011,7 +1018,7 @@ WSMETHOD GET  WSRECEIVE Tipo, Valor, Filial, Ordem, Sequencia WSSERVICE Estrutur
 
         If Empty(cBusca)
             SetRestFault(400, "Indice não encontrado no dicionário de dados")                
-            Return .T.
+            Return .F.
         EndIf
 
     ElseIf Upper(self:Tipo) == 'CONSULTA'
@@ -1023,7 +1030,7 @@ WSMETHOD GET  WSRECEIVE Tipo, Valor, Filial, Ordem, Sequencia WSSERVICE Estrutur
 
         If Empty(cBusca)
             SetRestFault(400, "Consulta não encontrado no dicionário de dados")                        
-            Return .T.
+            Return .F.
         EndIf
 
     EndIf
@@ -1101,7 +1108,7 @@ WSMETHOD GET  WSRECEIVE Tabela WSSERVICE NomeCampos
 
     If Empty(Self:Tabela)
         SetRestFault(400, "Tabela não informada")        
-        Return .T.
+        Return .F.
     EndIf
 
     dbSelectArea(Self:Tabela)
@@ -1121,16 +1128,16 @@ WSMETHOD GET  WSRECEIVE Tabela WSSERVICE NomeCampos
 Return .T.
 
 //-------------------------------------------------------------------
-/*/{Protheus.doc} AtributoCampo
+/*/{Protheus.doc} VerificaAtributoCampo
 Verifica se o conteudo de um atributo de um campo, esta atualizado no ambiente
 @author jose.camilo
 @since 29/07/2017
-@wsmethod AtributoCampo
+@wsmethod VerificaAtributoCampo
 @verbo GET
 @receiver campo, atributo e valor esperado
 @return logico + mensagem
 /*/
-WSRESTFUL AtributoCampo DESCRIPTION "Retorna se o conteudo de um atributo de um campo, esta correto" FORMAT "application/json"
+WSRESTFUL VerificaAtributoCampo DESCRIPTION "Retorna se o conteudo de um atributo de um campo, esta correto" FORMAT "application/json"
     WSDATA Campo	AS STRING
     WSDATA Atributo	AS STRING
     WSDATA Valor	AS STRING
@@ -1138,7 +1145,7 @@ WSRESTFUL AtributoCampo DESCRIPTION "Retorna se o conteudo de um atributo de um 
     WSMETHOD GET  DESCRIPTION "Retorna se o conteudo de um atributo de um campo, esta correto" 	PRODUCES APPLICATION_JSON
 END WSRESTFUL
 
-WSMETHOD GET  WSRECEIVE Campo, Atributo, Valor WSSERVICE AtributoCampo
+WSMETHOD GET  WSRECEIVE Campo, Atributo, Valor WSSERVICE VerificaAtributoCampo
 
     Local oJson     := JsonUtil():New()
     Local xValorAmb
@@ -1147,7 +1154,7 @@ WSMETHOD GET  WSRECEIVE Campo, Atributo, Valor WSSERVICE AtributoCampo
 
     If Empty(Self:Campo) .Or. Empty(Self:Atributo) .Or. Empty(Self:Valor)
         SetRestFault(400, 'Campo, Atributo ou Valor não informado') 
-        Return .T.
+        Return .F.
     EndIf
 
     xValorAmb   := readValue('SX3', 2, PadR(Upper(Self:Campo),10) , Upper(Self:Atributo))
@@ -1190,7 +1197,7 @@ WSMETHOD GET  WSRECEIVE Consulta WSSERVICE VerificaConsulta
 
     If Empty(Self:Consulta)
         SetRestFault(400, 'Consulta não informada') 
-        Return .T.
+        Return .F.
     EndIf
 
     dbSelectArea('SXB')
@@ -1235,7 +1242,7 @@ WSMETHOD GET  WSRECEIVE Gatilho, Sequencia WSSERVICE VerificaGatilho
 
     If Empty(Self:Gatilho) .Or. Empty(Self:Sequencia)
         SetRestFault(400, 'Gatilho ou Sequencia não informado') 
-        Return .T.
+        Return .F.
     EndIf
 
     dbSelectArea('SX7')
@@ -1491,6 +1498,9 @@ WSMETHOD POST WSSERVICE GravaParametro
 
         if fWJsonDeserialize(alltrim(cBody),@oRequest)
 
+            cFilSelect := If(Empty(oRequest:Filial) , Space(Len(cFilAnt)) ,oRequest:Filial )
+            cParametro := oRequest:Parametro
+
             oRestClient := FWRest():New(oRequest:Origem)
             oRestClient:setPath("/EstruturaSxs?tipo=parametro&valor=" + oRequest:Parametro + "&filial="+ oRequest:Filial)
             If oRestClient:Get()
@@ -1502,17 +1512,32 @@ WSMETHOD POST WSSERVICE GravaParametro
                         dbSelectArea('SX6')
                         nHeader := FCOUNT()
 
-                        RecLock('SX6', .T.)
+                        dbSetOrder(1)
+                        
+                        If dbSeek( cFilSelect + PadR(Upper(cParametro),10) )
+                            
+                            RecLock('SX6', .F.)
 
-                            For nX:=1 to nHeader
-                                cTitulo := FIELD(nX)
-                                xConteudo := &('oReqAux:estrutura[1]:'+ cTitulo)
+                                SX6->X6_CONTEUD := &('oReqAux:estrutura[1]:'+ X6_CONTEUD)
+                                SX6->X6_CONTSPA := &('oReqAux:estrutura[1]:'+ X6_CONTSPA)
+                                SX6->X6_CONTENG := &('oReqAux:estrutura[1]:'+ X6_CONTENG)
 
-                                SX6->( &(cTitulo) ) := xConteudo
+                            MsUnlock()
 
-                            Next nX
+                        else
 
-                        MsUnlock()
+                            RecLock('SX6', .T.)
+
+                                For nX:=1 to nHeader
+                                    cTitulo := FIELD(nX)
+                                    xConteudo := &('oReqAux:estrutura[1]:'+ cTitulo)
+
+                                    SX6->( &(cTitulo) ) := xConteudo
+
+                                Next nX
+
+                            MsUnlock()
+                        EndIf
 
                         DBCloseArea()
 
