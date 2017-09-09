@@ -7,65 +7,366 @@ Acelerador Verificação de Mudança
 
 ## AVMUD-Protheus
 ### Validação de Dicionário
-#### Parâmetro 
-##### /VerificaSX6/ - GET
-Verifica se o parâmetro está cadastrado com os valores desejados
+
+#### Campo
+##### /NomeCampos/ - GET
+Retorna o nome de todos os campos de uma tabela
 * Parâmetros:
 ```
-parametro - string: Nome do parâmetro à ser verificado
-conteudo - string: Conteudo Protuguês que deveria estar gravado
-contspa - string: Conteudo Espanhol que deveria estar gravado
-conteng	- string: Conteudo Inglês que deveria estar gravado
+tabela - string: Tabela onde os campos serão buscados
 ```
-* Retorno:
+* Requisição:
 ```
-/VerificaSX6?parametro=MV_1DUP&conteudo=1&contspa=1&conteng=1
+/NomeCampos?tabela=ADF
+
 {
-    "status": false,
-    "sx6": [
-        {
-            "x6_conteudo": "001",
-            "status": false
-        },
-        {
-            "x6_contspa": "1",
-            "status": true
-        },
-        {
-            "x6_conteng": "1",
-            "status": true
-        }
+    "result": true,
+    "msg": "Consulta realizada",
+    "obj": [
+        "ADF_FILIAL",
+        "ADF_CODIGO",
+        "ADF_ITEM",
+        "ADF_CODSU9",
+		...
+        "ADF__GDEST"
     ]
 }
 ```
-#### Campo 
+ 
 ##### /VerificaCampo/ - GET
 Verifica se um campo existe no ambiente. Do tipo físico, verifica também a existência fisicamente na tabela.
 * Parâmetros:
 ```
 campo - string: Campo que será verificado
 ```
-* Retorno:
+* Requisição:
 ```
 /VerificaCampo?campo=A1_COD
+
 {
     "result": true,
-    "msg": "Campo existe fisicamente"
+    "msg": "Campo existe fisicamente",
+    "obj": []
 }
 ```
 
-### Validação de Arquivos 
-#### /VerificaFile/ - GET
-Verifica a existência de um arquivo no servidor do Protheus à partir do RootPath  
+##### /GravaCampo/ - POST
+Recupera um campo de uma base e grava no ambiente corrente
 * Parâmetros:
 ```
-caminho - string: Caminho completo, à partir do RootPath e com extensão, do arquivo à ser verificado
+origem - string: WebService Rest do ambiente de origem do campo
+campo - string: Campo que será copiado
 ```
-* Retorno:
+* Requisição:
 ```
-/verificafile?caminho=/tecr120.prt
+/GravaCampo
 {
-    "result": true
+	"Origem" : "http://172.16.93.148:8083/rest",
+	"Campo" : "A1_COD"
+}
+
+{
+    "result": true,
+    "msg": "Copia realizada",
+    "obj": []
+}
+```
+
+##### /VerificaAtributoCampo/ - GET
+Verifica se o conteudo de um atributo de um campo, esta atualizado no ambiente
+* Parâmetros:
+```
+campo - string: Campo que será verificado
+atributo - string: Atributo (Campo do SX3), que será verificado no Campo passado
+valor - string: valor que deveriar estar gravado no atributo do Campo passado
+```
+* Requisição:
+```
+/VerificaAtributoCampo?campo=PF9_MODULO&valor=VAZIO() .OR. EXISTCPO("PF7")&atributo=X3_VLDUSER
+
+{
+    "result": true,
+    "msg": "Atributo de campo atualizado",
+    "obj": []
+}
+```
+
+##### /GravaAtributoCampo/ - PUT
+Recupera o atributo de um campo em uma base e grava na corrente
+* Parâmetros:
+```
+campo - string: Campo que será verificado
+atributo - string: Atributo (Campo do SX3), que será verificado no Campo passado
+origem - string: WebService Rest do ambiente de origem do campo
+```
+* Requisição:
+```
+/GravaAtributoCampo
+{
+	"Origem" : "http://172.16.93.148:8083/rest",
+	"Campo" : "A1_COD",
+	"Atributo" : "X3_TAMANHO"
+}
+
+{
+    "result": true,
+    "msg": "Copia realizada",
+    "obj": []
+}
+```
+
+
+#### Parâmetro 
+##### /VerificaParametro/ - GET
+Verifica se o parâmetro está cadastrado com os valores desejados
+* Parâmetros:
+```
+parametro - string: Nome do parâmetro à ser verificado
+conteudo - string: Conteudo Português que deveria estar gravado
+contspa - string: Conteudo Espanhol que deveria estar gravado
+conteng	- string: Conteudo Inglês que deveria estar gravado
+filial - string: Filial onde o parametro será pesquisado
+```
+* Requisição:
+```
+/VerificaParametro?parametro=MV_1DUP&conteud=A&contspa=A&conteng=A&filial=01
+
+{
+    "result": false,
+    "msg": "Parâmetro com dados desatualizados",
+    "obj": [
+        {
+            "x6_conteud": "A",
+            "status": true
+        },
+        {
+            "x6_contspa": "A",
+            "status": true
+        },
+        {
+            "x6_conteng": "",
+            "status": false
+        }
+    ]
+}
+```
+
+##### /GravaParametro/ - POST
+Recupera um parametro em uma base de origem e grava no ambiente corrente
+* Parâmetros:
+```
+parametro - string: Nome do parâmetro à ser copiado
+filial - string: Filial onde o parametro será pesquisado
+origem - string: WebService Rest do ambiente de origem do parametro
+```
+* Requisição:
+```
+http://172.16.93.182:8089/rest/GravaParametro
+
+{
+	"Origem" : "http://172.16.93.148:8083/rest",
+	"Parametro" : "MV_CIDADE",
+	"Filial" : "00302000500"
+}
+
+{
+    "result": true,
+    "msg": "Copia realizada",
+    "obj": []
+}
+```
+
+##### /GravaAtributoParametro/ - PUT
+Recupera um atributo de um parametro em um ambiente de origem e grava no corrente
+* Parâmetros:
+```
+parametro - string: Nome do parâmetro à ser copiado
+filial - string: Filial onde o parametro será pesquisado
+atributo - string: Nome do campo do dicionario SX6 que será copiado
+origem - string: WebService Rest do ambiente de origem do parametro
+```
+* Requisição:
+```
+http://172.16.93.182:8089/rest/GravaAtributoParametro
+
+{
+	"Origem" : "http://172.16.93.148:8083/rest",
+	"Parametro" : "TI_FIL774",
+	"Filial" : "",
+	"Atributo" : "X6_DESC2"
+}
+
+{
+    "result": true,
+    "msg": "Copia realizada",
+    "obj": []
+}
+```
+#### Consulta
+##### /VerificaConsulta/ - GET
+Verifica se uma consulta padrao sxb, existe no ambiente
+* Parâmetros:
+```
+consulta - string: nome da consulta que será verificada
+```
+* Requisição:
+```
+/VerificaConsulta?consulta=AA1
+
+{
+    "result": true,
+    "msg": "Consulta existe",
+    "obj": []
+}
+```
+
+##### /GravaConsulta/ - POST
+Recupera uma consulta padrao sxb de um ambiente de origem e grava no corrente
+* Parâmetros:
+```
+consulta - string: nome da consulta que será verificada
+origem - string: WebService Rest do ambiente de origem do parametro
+```
+* Requisição:
+```
+/GravaConsulta
+
+{
+	"Origem" : "http://172.16.93.148:8083/rest",
+	"Consulta" : "CNBPRP"
+}
+
+{
+    "result": true,
+    "msg": "Copia realizada",
+    "obj": []
+}
+```
+#### Gatilho
+##### /VerificaGatilho/ - GET
+Verifica se um gatilho existe no ambiente
+* Parâmetros:
+```
+gatilho - string: nome do campo que realiza o gatilho que será verificado
+sequencia - string: numero da sequencia do gatilho
+```
+* Requisição:
+```
+/VerificaGatilho?gatilho=AA3_CBASE&&sequencia=003
+
+{
+    "result": true,
+    "msg": "Gatilho existe",
+    "obj": []
+}
+```
+
+##### /GravaGatilho/ - POST
+Recupera um gatilho de uma base de origem e grava na corrente
+* Parâmetros:
+```
+gatilho - string: nome do campo que realiza o gatilho que será verificado
+sequencia - string: numero da sequencia do gatilho
+origem - string: WebService Rest do ambiente de origem do gatilho
+```
+* Requisição:
+```
+/GravaGatilho
+
+{
+	"Origem" : "http://172.16.93.148:8083/rest",
+	"Gatilho" : "TUU_TIPO",
+	"Sequencia" : "013"
+}
+
+{
+    "result": true,
+    "msg": "Copia realizada",
+    "obj": []
+}
+```
+
+#### Tabela
+##### /VerificaAlias/ - GET
+Verifica se a tabela existe no ambiente e se possivel a cria
+* Parâmetros:
+```
+alias - string: tabela que será verificada
+```
+* Requisição:
+```
+/VerificaAlias?alias=SA1
+
+{
+    "result": true,
+    "msg": "Tabela existe no ambiente",
+    "obj": []
+}
+```
+
+#### Indice
+##### /VerificaIndice/ - GET
+Verifica a existencia do indice fisicamente na tabela
+* Parâmetros:
+```
+alias - string: tabela que será verificada com o indice
+order - string: numero da ordem do indice na tabela
+ou
+nickname - string: apelido do indice na tabela
+```
+* Requisição:
+```
+/VerificaIndice?alias=SA1&order=1
+/VerificaIndice?alias=SA9&nickName=SA9CARGO
+{
+    "result": true,
+    "msg": "Indice existe",
+    "obj": []
+}
+```
+
+#### Estrutura de dicinonário
+##### /EstruturaSxs/ - GET
+Retorna a estrutura de um dicionario
+* Parâmetros:
+```
+Tipo - string: Tipo da estrutura solicitada: tabela,campo,parametro,gatilho,indice ou consulta
+Valor - string: Dado principal da pesquisa : nome da tabela ou campo ou parametro
+Filial - string: Filial usada para pesquisar quando Tipo for parametro
+Ordem - string: Ordem usada para pesquisar quando o Tipo for indice
+Sequencia - string: Sequencia usada para pesquisar quando o Tipo for gatilho
+```
+* Requisição:
+```
+/EstruturaSxs?tipo=consulta&valor=1AA
+{
+    "result": true,
+    "msg": "Estrutura encontrada",
+    "obj": [
+        {
+            "XB_ALIAS": "1AA",
+            "XB_TIPO": "1",
+            "XB_SEQ": "01",
+            "XB_COLUNA": "DB",
+            "XB_DESCRI": "VENDEDORES",
+            "XB_DESCSPA": "VENDEDORES",
+            "XB_DESCENG": "SALES REPRESENTATIVE",
+            "XB_CONTEM": "VAI",
+            "XB_WCONTEM": ""
+        },
+		...
+        {
+            "XB_ALIAS": "1AA",
+            "XB_TIPO": "5",
+            "XB_SEQ": "01",
+            "XB_COLUNA": "",
+            "XB_DESCRI": "",
+            "XB_DESCSPA": "",
+            "XB_DESCENG": "",
+            "XB_CONTEM": "VAI->VAI_CODVEN",
+            "XB_WCONTEM": ""
+        }
+    ]
 }
 ```
 
@@ -78,19 +379,22 @@ collection - string: Nome da Collection do TFS onde o fonte foi comitdado
 arquivo - string: Caminho completo do arquivo fonte
 changeset - string: Numero de registro do TFS changeSet
 ```
-* Retorno:
+* Requisição:
 ```
 /VerificaFonte?Collection=TI&ChangeSet=38195&Arquivo=$/SSIM/Fontes_Doc/Sustentacao/Fontes/Genericas/SIMXTMKB.PRW
+
 {
     "result": true,
-    "itens": [
+    "msg": "Fontes atualizados no ambiente",
+    "obj": [
         {
             "fonte": "SIMXTMKB.PRW",
             "status": "Compilado"
         }
     ]
 }
-```  
+```
+  
 #### /VerificaChangeSet/ - GET
 Verifica se um conjunto de fontes, comitado no TFS da TOTVS, está compilado no ambiente
 * Parâmetros:
@@ -98,559 +402,88 @@ Verifica se um conjunto de fontes, comitado no TFS da TOTVS, está compilado no 
 collection - string: Nome da Collection do TFS onde o fonte foi comitdado
 changeset - string: Numero de registro do TFS changeSet
 ```
-* Retorno:
+* Requisição:
 ```
-/VerificaChangeSet?changeset=54425&collection=TDITOTVS12
+/VerificaChangeSet?Collection=TI&ChangeSet=38195
+
 {
-    "result": true,
-    "itens": [
+    "result": false,
+    "msg": "Pelo menos um dos fontes estão desatualizados no ambiente",
+    "obj": [
         {
-            "fonte": "TCRMA080.prw",
+            "fonte": "SIMXTMKB.PRW",
             "status": "Compilado"
         },
         {
-            "fonte": "TCRMX102.prw",
-            "status": "Compilado"
-        },
-        {
-            "fonte": "TCRMR014.prw",
-            "status": "Compilado"
-        },
-        {
-            "fonte": "TCRMW001.prw",
-            "status": "Compilado"
-        },
-        {
-            "fonte": "FT300SPR.prw",
-            "status": "Compilado"
-        },
-        {
-            "fonte": "FT600CL.prw",
-            "status": "Compilado"
-        },
-        {
-            "fonte": "FT600FGR.prw",
-            "status": "Compilado"
-        },
-        {
-            "fonte": "FT600IMP.PRW",
-            "status": "Compilado"
-        },
-        {
-            "fonte": "FT600TOK.PRW",
-            "status": "Compilado"
+            "fonte": "PMSMON08.prw",
+            "status": "Data Invalida no RPO"
         }
     ]
 }
 ``` 
 
-#### /VerificaAlias/ - GET
-Verifica se uma tabela existe no ambiente forçando sua criação, retorna qualquer erro na operação
+### Validação de Arquivos 
+#### /VerificaFile/ - GET
+Verifica a existência de um arquivo no servidor do Protheus à partir do RootPath  
 * Parâmetros:
 ```
-alias - string: Nome da Tabela que será verificada
+caminho - string: Caminho completo, à partir do RootPath e com extensão, do arquivo à ser verificado
 ```
-* Retorno:
+* Requisição:
 ```
-/VerificaAlias?alias=SA1
+/verificafile?caminho=/tecr120.prt
+
 {
     "result": true,
-    "msg": "Tabela existe"
+	"msg": "Arquivo existente",
+    "obj": []
 }
 ```
 
+### Cópia de Dicionário
+#### /dicFileCreate/ - PUT
+Cria arquivo de dicionario com filtro e formato informado na requisição
+* Parâmetros:
 ```
-http://172.16.93.182:8089/rest/EstruturaSxs?tipo=consulta&valor=1AA
+diretorio - string: caminho onde o arquivo será salvo
+tipo - string: tipo do dicionario que será copiado: SX1, SX2, SX3, SX6, SX7, SXB ou SIX
+estrutura - array: dados que serão usados para filtro com a condição 'ou' entre os elementos deste array
+drive - string: driver (RDD) a ser usado para criar a tabela: DBFCDX, DBFCDXADS, TOPCONN
+```
+* Requisição:
+```
+/dicFileCreate
+
+{
+	"diretorio" : "temp",
+	"tipo" : "SX6",
+	"estrutura" : ["MV_CIDADE"],
+	"driver" : "DBFCDXADS"
+}
+
 {
     "result": true,
-    "msg": "Estrutura encontrada",
-    "estrutura": [
-        {
-            "XB_ALIAS": "1AA",
-            "XB_TIPO": "1",
-            "XB_SEQ": "01",
-            "XB_COLUNA": "DB",
-            "XB_DESCRI": "VENDEDORES",
-            "XB_DESCSPA": "VENDEDORES",
-            "XB_DESCENG": "SALES REPRESENTATIVE",
-            "XB_CONTEM": "VAI",
-            "XB_WCONTEM": ""
-        },
-        {
-            "XB_ALIAS": "1AA",
-            "XB_TIPO": "2",
-            "XB_SEQ": "01",
-            "XB_COLUNA": "06",
-            "XB_DESCRI": "Cod. Vendedor",
-            "XB_DESCSPA": "Cod. Vendedor",
-            "XB_DESCENG": "Sales Rep. Code",
-            "XB_CONTEM": "",
-            "XB_WCONTEM": ""
-        },
-        {
-            "XB_ALIAS": "1AA",
-            "XB_TIPO": "4",
-            "XB_SEQ": "01",
-            "XB_COLUNA": "01",
-            "XB_DESCRI": "Vendedor",
-            "XB_DESCSPA": "Vendedor",
-            "XB_DESCENG": "Sales Represent.",
-            "XB_CONTEM": "VAI_CODVEN",
-            "XB_WCONTEM": ""
-        },
-        {
-            "XB_ALIAS": "1AA",
-            "XB_TIPO": "4",
-            "XB_SEQ": "01",
-            "XB_COLUNA": "02",
-            "XB_DESCRI": "Nome",
-            "XB_DESCSPA": "Nombre",
-            "XB_DESCENG": "Name",
-            "XB_CONTEM": "VAI_NOMUSU",
-            "XB_WCONTEM": ""
-        },
-        {
-            "XB_ALIAS": "1AA",
-            "XB_TIPO": "5",
-            "XB_SEQ": "01",
-            "XB_COLUNA": "",
-            "XB_DESCRI": "",
-            "XB_DESCSPA": "",
-            "XB_DESCENG": "",
-            "XB_CONTEM": "VAI->VAI_CODVEN",
-            "XB_WCONTEM": ""
-        }
-    ]
+    "msg": "arquivo copiado com sucesso para: temp/dicFileCreate_SX6_20170908.dbf",
+    "obj": []
 }
+```
 
+### Email
+#### /EnviaEmail/ - GET
+Envia um email pelas funções do Protheus (SSIM e TOTVS)
+* Parâmetros:
+```
+destinatario - string: endereços de email que receberam o email
+subject - string: assunto do email
+body - string: corpo do email
+```
+* Requisição:
+```
+/EnviaEmail?Subject=assuntoABC&Destinatario=jose.camilo@totovs.com.br;marllon.fernandes@totvs.com.br&Body=email enviado pelo rest
 
-
-http://172.16.93.182:8089/rest/EstruturaSxs?tipo=parametro&valor=PS_MSGEXP3&filial=01
 {
     "result": true,
-    "msg": "Estrutura encontrada",
-    "estrutura": [
-        {
-            "X6_FIL": "01",
-            "X6_VAR": "PS_MSGEXP3",
-            "X6_TIPO": "C",
-            "X6_DESCRIC": "Mensagem de Expedicao chamado Associado",
-            "X6_DSCSPA": "",
-            "X6_DSCENG": "",
-            "X6_DESC1": "",
-            "X6_DSCSPA1": "",
-            "X6_DSCENG1": "",
-            "X6_DESC2": "",
-            "X6_DSCSPA2": "",
-            "X6_DSCENG2": "",
-            "X6_CONTEUD": "Chamado associado a um chamado planejado para liberacao do pacote no Portal de Clientes no dia #DTEXP",
-            "X6_CONTSPA": "",
-            "X6_CONTENG": "",
-            "X6_PROPRI": "U",
-            "X6_PYME": "",
-            "X6_VALID": "",
-            "X6_INIT": "",
-            "X6_DEFPOR": "",
-            "X6_DEFSPA": "",
-            "X6_DEFENG": ""
-        }
-    ]
+    "msg": "Email enviado",
+    "obj": []
 }
-
-
-http://172.16.93.182:8089/rest/EstruturaSxs?tipo=campo&valor=A1_COD
-{
-    "result": true,
-    "msg": "Estrutura encontrada",
-    "estrutura": [
-        {
-            "X3_ARQUIVO": "SA1",
-            "X3_ORDEM": "02",
-            "X3_CAMPO": "A1_COD",
-            "X3_TIPO": "C",
-            "X3_TAMANHO": 6,
-            "X3_DECIMAL": 0,
-            "X3_TITULO": "Codigo",
-            "X3_TITSPA": "Codigo",
-            "X3_TITENG": "Code",
-            "X3_DESCRIC": "Codigo do Cliente",
-            "X3_DESCSPA": "Codigo del Cliente",
-            "X3_DESCENG": "Customer\ufffds Code",
-            "X3_PICTURE": "@!",
-            "X3_VALID": "IIF(Empty(M->A1_LOJA),.T.,ExistChav('SA1',M->A1_COD+M->A1_LOJA,,'EXISTCLI'))",
-            "X3_USADO": "gICAgICAgICAgICAgICw",
-            "X3_RELACAO": "",
-            "X3_F3": "",
-            "X3_NIVEL": 1,
-            "X3_RESERV": "g4A=",
-            "X3_CHECK": "",
-            "X3_TRIGGER": "",
-            "X3_PROPRI": "",
-            "X3_BROWSE": "S",
-            "X3_VISUAL": "",
-            "X3_CONTEXT": "",
-            "X3_OBRIGAT": "",
-            "X3_VLDUSER": "",
-            "X3_CBOX": "",
-            "X3_CBOXSPA": "",
-            "X3_CBOXENG": "",
-            "X3_PICTVAR": "",
-            "X3_WHEN": "",
-            "X3_INIBRW": "",
-            "X3_GRPSXG": "001",
-            "X3_FOLDER": "1",
-            "X3_PYME": "S",
-            "X3_CONDSQL": "",
-            "X3_CHKSQL": "",
-            "X3_IDXSRV": "S",
-            "X3_ORTOGRA": "N",
-            "X3_IDXFLD": "N",
-            "X3_TELA": "",
-            "X3_AGRUP": "",
-            "X3_POSLGT": "",
-            "X3_MODAL": ""
-        },
-        {
-            "X3_ARQUIVO": "SA1",
-            "X3_ORDEM": "02",
-            "X3_CAMPO": "A1_COD",
-            "X3_TIPO": "C",
-            "X3_TAMANHO": 6,
-            "X3_DECIMAL": 0,
-            "X3_TITULO": "Codigo",
-            "X3_TITSPA": "Codigo",
-            "X3_TITENG": "Code",
-            "X3_DESCRIC": "Codigo do Cliente",
-            "X3_DESCSPA": "Codigo del Cliente",
-            "X3_DESCENG": "Customer\ufffds Code",
-            "X3_PICTURE": "@!",
-            "X3_VALID": "IIF(Empty(M->A1_LOJA),.T.,ExistChav('SA1',M->A1_COD+M->A1_LOJA,,'EXISTCLI'))",
-            "X3_USADO": "gICAgICAgICAgICAgICw",
-            "X3_RELACAO": "A030INICPD()",
-            "X3_F3": "",
-            "X3_NIVEL": 1,
-            "X3_RESERV": "g4A=",
-            "X3_CHECK": "",
-            "X3_TRIGGER": "",
-            "X3_PROPRI": "",
-            "X3_BROWSE": "S",
-            "X3_VISUAL": "A",
-            "X3_CONTEXT": "R",
-            "X3_OBRIGAT": "",
-            "X3_VLDUSER": "",
-            "X3_CBOX": "",
-            "X3_CBOXSPA": "",
-            "X3_CBOXENG": "",
-            "X3_PICTVAR": "",
-            "X3_WHEN": "A030WHEN()",
-            "X3_INIBRW": "",
-            "X3_GRPSXG": "001",
-            "X3_FOLDER": "1",
-            "X3_PYME": "S",
-            "X3_CONDSQL": "",
-            "X3_CHKSQL": "",
-            "X3_IDXSRV": "S",
-            "X3_ORTOGRA": "N",
-            "X3_IDXFLD": "N",
-            "X3_TELA": "",
-            "X3_AGRUP": "",
-            "X3_POSLGT": "1",
-            "X3_MODAL": "1"
-        }
-    ]
-}
-
-
-
-http://172.16.93.182:8089/rest/EstruturaSxs?tipo=tabela&valor=SA1
-{
-    "result": true,
-    "msg": "Estrutura encontrada",
-    "estrutura": [
-        {
-            "X2_CHAVE": "SA1",
-            "X2_PATH": "",
-            "X2_ARQUIVO": "SA1AA0",
-            "X2_NOME": "Clientes",
-            "X2_NOMESPA": "Clientes",
-            "X2_NOMEENG": "Customers",
-            "X2_ROTINA": "",
-            "X2_MODO": "C",
-            "X2_MODOUN": "E",
-            "X2_MODOEMP": "E",
-            "X2_DELET": 0,
-            "X2_TTS": "",
-            "X2_UNICO": "A1_FILIAL+A1_COD+A1_LOJA",
-            "X2_PYME": "S",
-            "X2_MODULO": 5,
-            "X2_DISPLAY": "A1_COD+A1_LOJA+A1_NOME",
-            "X2_SYSOBJ": "MATA030",
-            "X2_USROBJ": "",
-            "X2_POSLGT": "",
-            "X2_CLOB": "",
-            "X2_AUTREC": "",
-            "X2_TAMFIL": 0,
-            "X2_TAMUN": 0,
-            "X2_TAMEMP": 0
-        }
-    ]
-}
-
-
-http://172.16.93.182:8089/rest/EstruturaSxs?tipo=consulta&valor=1AA
-{
-    "result": true,
-    "msg": "Estrutura encontrada",
-    "estrutura": [
-        {
-            "XB_ALIAS": "1AA",
-            "XB_TIPO": "1",
-            "XB_SEQ": "01",
-            "XB_COLUNA": "DB",
-            "XB_DESCRI": "VENDEDORES",
-            "XB_DESCSPA": "VENDEDORES",
-            "XB_DESCENG": "SALES REPRESENTATIVE",
-            "XB_CONTEM": "VAI",
-            "XB_WCONTEM": ""
-        },
-        {
-            "XB_ALIAS": "1AA",
-            "XB_TIPO": "2",
-            "XB_SEQ": "01",
-            "XB_COLUNA": "06",
-            "XB_DESCRI": "Cod. Vendedor",
-            "XB_DESCSPA": "Cod. Vendedor",
-            "XB_DESCENG": "Sales Rep. Code",
-            "XB_CONTEM": "",
-            "XB_WCONTEM": ""
-        },
-        {
-            "XB_ALIAS": "1AA",
-            "XB_TIPO": "4",
-            "XB_SEQ": "01",
-            "XB_COLUNA": "01",
-            "XB_DESCRI": "Vendedor",
-            "XB_DESCSPA": "Vendedor",
-            "XB_DESCENG": "Sales Represent.",
-            "XB_CONTEM": "VAI_CODVEN",
-            "XB_WCONTEM": ""
-        },
-        {
-            "XB_ALIAS": "1AA",
-            "XB_TIPO": "4",
-            "XB_SEQ": "01",
-            "XB_COLUNA": "02",
-            "XB_DESCRI": "Nome",
-            "XB_DESCSPA": "Nombre",
-            "XB_DESCENG": "Name",
-            "XB_CONTEM": "VAI_NOMUSU",
-            "XB_WCONTEM": ""
-        },
-        {
-            "XB_ALIAS": "1AA",
-            "XB_TIPO": "5",
-            "XB_SEQ": "01",
-            "XB_COLUNA": "",
-            "XB_DESCRI": "",
-            "XB_DESCSPA": "",
-            "XB_DESCENG": "",
-            "XB_CONTEM": "VAI->VAI_CODVEN",
-            "XB_WCONTEM": ""
-        }
-    ]
-}
-
-
-
-
-
-http://172.16.93.182:8089/rest/EstruturaSxs?tipo=indice&valor=SA1&ordem=1
-{
-    "result": true,
-    "msg": "Estrutura encontrada",
-    "estrutura": [
-        {
-            "INDICE": "SA1",
-            "ORDEM": "1",
-            "CHAVE": "A1_FILIAL+A1_COD+A1_LOJA",
-            "DESCRICAO": "Codigo + Loja",
-            "DESCSPA": "Codigo + Tienda",
-            "DESCENG": "Code + Unit",
-            "PROPRI": "S",
-            "F3": "",
-            "NICKNAME": "",
-            "SHOWPESQ": "S"
-        }
-    ]
-}
-
-
-
-
-http://172.16.93.182:8089/rest/EstruturaSxs?tipo=gatilho&valor=AB3_LOJA&sequencia=002
-{
-    "result": true,
-    "msg": "Estrutura encontrada",
-    "estrutura": [
-        {
-            "X7_CAMPO": "AB3_LOJA",
-            "X7_SEQUENC": "002",
-            "X7_REGRA": "SA1->A1_DESC",
-            "X7_CDOMIN": "AB3_DESC1",
-            "X7_TIPO": "P",
-            "X7_SEEK": "S",
-            "X7_ALIAS": "SA1",
-            "X7_ORDEM": 1,
-            "X7_CHAVE": "xFilial('SA1')+M->AB3_CODCLI+M->AB3_LOJA",
-            "X7_CONDIC": "",
-            "X7_PROPRI": "S"
-        }
-    ]
-}
-
-
-
-http://172.16.93.182:8089/rest/NomeCampos?tabela=SX3
-{
-    "result": true,
-    "msg": "Consulta realizada",
-    "campos": [
-        "X3_ARQUIVO",
-        "X3_ORDEM",
-        "X3_CAMPO",
-        "X3_TIPO",
-        "X3_TAMANHO",
-        "X3_DECIMAL",
-        "X3_TITULO",
-        "X3_TITSPA",
-        "X3_TITENG",
-        "X3_DESCRIC",
-        "X3_DESCSPA",
-        "X3_DESCENG",
-        "X3_PICTURE",
-        "X3_VALID",
-        "X3_USADO",
-        "X3_RELACAO",
-        "X3_F3",
-        "X3_NIVEL",
-        "X3_RESERV",
-        "X3_CHECK",
-        "X3_TRIGGER",
-        "X3_PROPRI",
-        "X3_BROWSE",
-        "X3_VISUAL",
-        "X3_CONTEXT",
-        "X3_OBRIGAT",
-        "X3_VLDUSER",
-        "X3_CBOX",
-        "X3_CBOXSPA",
-        "X3_CBOXENG",
-        "X3_PICTVAR",
-        "X3_WHEN",
-        "X3_INIBRW",
-        "X3_GRPSXG",
-        "X3_FOLDER",
-        "X3_PYME",
-        "X3_CONDSQL",
-        "X3_CHKSQL",
-        "X3_IDXSRV",
-        "X3_ORTOGRA",
-        "X3_IDXFLD",
-        "X3_TELA",
-        "X3_AGRUP",
-        "X3_POSLGT",
-        "X3_MODAL"
-    ]
-}
-
-http://172.16.93.182:8089/rest/AtributoCampo?campo=PF9_MODULO&valor=VAZIO() .OR. EXISTCPO("PF7")&atributo=X3_VLDUSER
-{
-    "result": true,
-    "msg": "Atributo de campo atualizado"
-}
-
-http://172.16.93.182:8089/rest/VerificaConsulta?consulta=AA1
-{
-    "result": true,
-    "msg": "Consulta existe"
-}
-
-http://172.16.93.182:8089/rest/VerificaGatilho?gatilho=AA3_CBASE&&sequencia=003
-{
-    "result": true,
-    "msg": "Gatilho existe"
-}
-
-
-http://172.16.93.182:8089/rest/GravaCampo
-{
-	"Origem" : "http://172.16.93.148:8083/rest",
-	"Campo" : "A1_COD"
-}
-{
-    "result": true,
-    "msg": "Copia realizada"
-}
-
-
-http://172.16.93.182:8089/rest/GravaAtributoCampo
-{
-	"Origem" : "http://172.16.93.148:8083/rest",
-	"Campo" : "PNS_CLIATV",
-	"Atributo" : "X3_TAMANHO"
-}
-{
-    "result": true,
-    "msg": "Copia realizada"
-}
-
-
-
-http://172.16.93.182:8089/rest/GravaParametro
-{
-	"Origem" : "http://172.16.93.148:8083/rest",
-	"Parametro" : "MV_CIDADE",
-	"Filial" : "00302000500"
-}
-{
-    "result": true,
-    "msg": "Copia realizada"
-}
-
-
-http://172.16.93.182:8089/rest/GravaAtributoParametro
-{
-	"Origem" : "http://172.16.93.148:8083/rest",
-	"Parametro" : "TI_FIL774",
-	"Filial" : "",
-	"Atributo" : "X6_DESC2"
-}
-{
-    "result": true,
-    "msg": "Copia realizada"
-}
-
-
-http://172.16.93.182:8089/rest/GravaGatilho
-{
-	"Origem" : "http://172.16.93.148:8083/rest",
-	"Gatilho" : "TUU_TIPO",
-	"Sequencia" : "013"
-}
-{
-    "result": true,
-    "msg": "Copia realizada"
-}
-
-http://172.16.93.182:8089/rest/GravaConsulta
-{
-	"Origem" : "http://172.16.93.148:8083/rest",
-	"Consulta" : "CNBPRP"
-}
-{
-    "result": true,
-    "msg": "Copia realizada"
-}
-
-
 ```
