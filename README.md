@@ -61,7 +61,7 @@ campo - string: Campo que será copiado
 ```
 /GravaCampo
 {
-	"Origem" : "http://172.16.93.148:8083/rest",
+	"Origem" : "http://localhost:8083/rest",
 	"Campo" : "A1_COD"
 }
 
@@ -103,7 +103,7 @@ origem - string: WebService Rest do ambiente de origem do campo
 ```
 /GravaAtributoCampo
 {
-	"Origem" : "http://172.16.93.148:8083/rest",
+	"Origem" : "http://localhost:8083/rest",
 	"Campo" : "A1_COD",
 	"Atributo" : "X3_TAMANHO"
 }
@@ -161,10 +161,10 @@ origem - string: WebService Rest do ambiente de origem do parametro
 ```
 * Requisição:
 ```
-http://172.16.93.182:8089/rest/GravaParametro
+/GravaParametro
 
 {
-	"Origem" : "http://172.16.93.148:8083/rest",
+	"Origem" : "http://localhost:8083/rest",
 	"Parametro" : "MV_CIDADE",
 	"Filial" : "00302000500"
 }
@@ -187,10 +187,10 @@ origem - string: WebService Rest do ambiente de origem do parametro
 ```
 * Requisição:
 ```
-http://172.16.93.182:8089/rest/GravaAtributoParametro
+/GravaAtributoParametro
 
 {
-	"Origem" : "http://172.16.93.148:8083/rest",
+	"Origem" : "http://localhost:8083/rest",
 	"Parametro" : "TI_FIL774",
 	"Filial" : "",
 	"Atributo" : "X6_DESC2"
@@ -232,7 +232,7 @@ origem - string: WebService Rest do ambiente de origem do parametro
 /GravaConsulta
 
 {
-	"Origem" : "http://172.16.93.148:8083/rest",
+	"Origem" : "http://localhost:8083/rest",
 	"Consulta" : "CNBPRP"
 }
 
@@ -274,7 +274,7 @@ origem - string: WebService Rest do ambiente de origem do gatilho
 /GravaGatilho
 
 {
-	"Origem" : "http://172.16.93.148:8083/rest",
+	"Origem" : "http://localhost:8083/rest",
 	"Gatilho" : "TUU_TIPO",
 	"Sequencia" : "013"
 }
@@ -448,7 +448,7 @@ Cria arquivo de dicionario com filtro e formato informado na requisição
 diretorio - string: caminho onde o arquivo será salvo
 tipo - string: tipo do dicionario que será copiado: SX1, SX2, SX3, SX6, SX7, SXB ou SIX
 estrutura - array: dados que serão usados para filtro com a condição 'ou' entre os elementos deste array
-drive - string: driver (RDD) a ser usado para criar a tabela: DBFCDX, DBFCDXADS, TOPCONN
+drive - string: driver (RDD) a ser usado para criar o arquivo: DBFCDX, DBFCDXADS, TOPCONN
 ```
 * Requisição:
 ```
