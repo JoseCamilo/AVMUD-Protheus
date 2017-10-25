@@ -1887,11 +1887,8 @@ WSMETHOD GET WSSERVICE LoadEmp
     Local oItem     := Nil
     Local nI        := 0
 
-
     DbSelectArea("SM0")
-    conout("abriu")
     SM0->(DbGoTop())
-    conout("topo")
     SM0->(DbEval({|| Iif(aScan(aEmpresas,{|x| x[1] ==  M0_CODIGO})==0,aAdd(aEmpresas,{M0_CODIGO,AllTrim(M0_NOME)}),Nil)  }))
 
     //Retorno dos itens
