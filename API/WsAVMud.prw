@@ -534,8 +534,6 @@ User Function TDataArqTFS(cArquivo,cCollection,cChangeSet)
     Local nI := 0
     Local nPos := 0
     Local cResp
-    Local cData
-    Local cHora
 
     Default cArquivo := ""
     Default cChangeSet := ""
