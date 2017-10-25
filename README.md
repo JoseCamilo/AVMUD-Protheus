@@ -487,3 +487,28 @@ body - string: corpo do email
     "obj": []
 }
 ```
+
+### Empresas
+#### /LoadEmp/ - GET
+Busca Empresas
+
+* Requisição:
+```
+/LoadEmp
+
+{
+    "result": true,
+    "msg": "Empresas do ambiente",
+    "obj": [
+        {
+            "codigo": "00",
+            "nome": "TOTVS BRASIL"
+        },
+		...
+        {
+            "codigo": "82",
+            "nome": "TOTVS FRANQUICIAS MI ARGENTINA"
+        }
+    ]
+}
+```

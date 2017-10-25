@@ -1863,6 +1863,52 @@ WSMETHOD POST WSSERVICE GravaConsulta
 
 Return lRet
 
+//-------------------------------------------------------------------
+/*/{Protheus.doc} LoadEmp
+Recupera as empresas
+@author jose.camilo
+@since 29/07/2017
+@wsmethod LoadEmp
+@verbo GET
+@receiver
+@return logico + mensagem
+/*/
+WSRESTFUL LoadEmp DESCRIPTION "Recupera as empresas" FORMAT "application/json"
+
+    WSMETHOD GET  DESCRIPTION "Recupera as empresas" 	PRODUCES APPLICATION_JSON
+END WSRESTFUL
+
+WSMETHOD GET WSSERVICE LoadEmp
+
+    Local lRet      := .T.
+    Local oJson     := JsonUtil():New()
+    Local aEmpresas := {}
+    Local aObj      := {}
+    Local oItem     := Nil
+    Local nI        := 0
+
+
+    DbSelectArea("SM0")
+    conout("abriu")
+    SM0->(DbGoTop())
+    conout("topo")
+    SM0->(DbEval({|| Iif(aScan(aEmpresas,{|x| x[1] ==  M0_CODIGO})==0,aAdd(aEmpresas,{M0_CODIGO,AllTrim(M0_NOME)}),Nil)  }))
+
+    //Retorno dos itens
+    for nI:= 1 to Len(aEmpresas)
+        oItem := JsonUtil():New()
+        oItem:PutVal("codigo", aEmpresas[nI][1])
+        oItem:PutVal("nome", aEmpresas[nI][2])
+        aadd(aObj,oItem)
+    next nI
+
+    oJson:PutVal("result", lRet)
+    oJson:PutVal("msg","Empresas do ambiente")
+    oJson:PutVal("obj", aObj)
+
+    Self:SetResponse( oJson:ToJson() )  
+
+Return lRet
 
 // //--------------------------------------------------------
 // //--------------------------------------------------------
