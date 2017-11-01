@@ -680,6 +680,70 @@ User Function TDataArqTFS(cArquivo,cCollection,cChangeSet)
 Return aRet
 
 //-------------------------------------------------------------------
+/*/{Protheus.doc} ListaArqChangeSet
+Atraves do changeset, lista os artefatos commitados no TFS
+@since 29/07/2017
+@wsmethod ListaArqChangeSet
+@verbo GET
+@receiver Collection e changeset do TFS referente aos artefatos
+@return logico + mensagem + estrutura com artefatos
+/*/
+WSRESTFUL ListaArqChangeSet DESCRIPTION "Lista arquivos pelo ChangeSet" FORMAT "application/json"
+    WSDATA Collection 		AS STRING OPTIONAL
+    WSDATA ChangeSet 		AS STRING OPTIONAL
+
+    WSMETHOD GET  DESCRIPTION "Lista arquivos pelo ChangeSet" 	PRODUCES APPLICATION_JSON
+END WSRESTFUL
+
+WSMETHOD GET  WSRECEIVE Collection,ChangeSet WSSERVICE ListaArqChangeSet
+
+    Local nI := 0
+    Local aArquivos := {}
+    Local lRet  := .T.
+    Local cMsg  := "Listagem de arquivos"
+    Local oJson := JsonUtil():New()
+    Local oItem := Nil
+    Local aObj  := {}
+    Local aFonte := {}
+    Local cFonte := ""
+
+    If Empty(Self:Collection) .Or. Empty(Self:ChangeSet)
+        SetRestFault(400, 'Collection ou Changeset dos arquivos que serão verificados não foi informado') 
+        Return .F.
+    EndIf
+
+    aArquivos := u_TListArqTFS(Self:Collection,Self:ChangeSet)
+
+    If ValType(aArquivos) != "A"
+        SetRestFault(400, 'Erro ao buscar itens no TFS')
+        Return .F.
+    EndIf
+
+    //Retorno dos itens
+    for nI:= 1 to Len(aArquivos)
+
+        aFonte := StrTokArr(aArquivos[nI],"/")
+        cFonte := aFonte[len(aFonte)]
+
+        if !(upper(right(cFonte,3)) $ 'PRW/PRX')
+            loop
+        endif
+
+        oItem := JsonUtil():New()
+        oItem:PutVal("nome", cFonte)
+        oItem:PutVal("path", aArquivos[nI])
+        aadd(aObj,oItem)
+    next nI
+
+    oJson:PutVal("result", lRet)
+    oJson:PutVal("msg", cMsg)
+    oJson:PutVal("obj", aObj)
+
+    Self:SetResponse( oJson:ToJson() )  
+
+Return .T.
+
+//-------------------------------------------------------------------
 /*/{Protheus.doc} VerificaAlias
 Verifica se a tabela existe no ambiente e se possivel a cria
 @author jose.camilo

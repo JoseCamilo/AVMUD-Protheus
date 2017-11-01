@@ -445,6 +445,37 @@ ambiente - string: Nome do Ambiente onde será executado
 }
 ``` 
 
+#### /ListaArqChangeSet/ - GET
+Lista Fontes commitados de um ChangeSet
+* Parâmetros:
+```
+collection - string: Nome da Collection do TFS onde o fonte foi comitdado
+changeset - string: Numero de registro do TFS changeSet
+```
+* Requisição:
+```
+/ListaArqChangeSet?Collection=CD-SP&ChangeSet=381980
+
+{
+    "result": true,
+    "msg": "Listagem de arquivos",
+    "obj": [
+        {
+            "nome": "TMKA260.PRW",
+            "path": "$/Protheus_Padrao/Fontes_Doc/Inovação/V12/V12.1.7-INOV/V12 na Totvs/CRM/TMKA260.PRW"
+        },
+        {
+            "nome": "TMKA341.PRW",
+            "path": "$/Protheus_Padrao/Fontes_Doc/Inovação/V12/V12.1.7-INOV/V12 na Totvs/CRM/TMKA341.PRW"
+        },
+        {
+            "nome": "FATA530.PRW",
+            "path": "$/Protheus_Padrao/Fontes_Doc/Inovação/V12/V12.1.7-INOV/V12 na Totvs/Materiais/FATA530.PRW"
+        }
+    ]
+}
+``` 
+
 ### Validação de Arquivos 
 #### /VerificaFile/ - GET
 Verifica a existência de um arquivo no servidor do Protheus à partir do RootPath  
