@@ -114,15 +114,16 @@ Verifica a existencia de um campo
 /*/
 WSRESTFUL VerificaCampo DESCRIPTION "Verifica existencia de um campo" FORMAT "application/json"
     WSDATA Campo 		AS STRING OPTIONAL
+    WSDATA Empresa 		AS STRING OPTIONAL
 
     WSMETHOD GET  DESCRIPTION "Verifica existencia de um campo" 	PRODUCES APPLICATION_JSON
 END WSRESTFUL
 
-WSMETHOD GET  WSRECEIVE Campo WSSERVICE VerificaCampo
+WSMETHOD GET  WSRECEIVE Campo, Empresa WSSERVICE VerificaCampo
 
-    Local cNomeCampo    := readValue('SX3', 2, PadR(Upper(Self:Campo),10) , 'X3_CAMPO') 
-    Local cAlias        := readValue('SX3', 2, cNomeCampo, 'X3_ARQUIVO') 
-    Local cTipoCampo    := Upper( readValue('SX3', 2, cNomeCampo, 'X3_CONTEXT') )
+    Local cNomeCampo    := "" 
+    Local cAlias        := "" 
+    Local cTipoCampo    := ""
     Local lRet          := .F.
     Local cMsg          := ""
     Local oJson  := JsonUtil():New()
@@ -131,6 +132,16 @@ WSMETHOD GET  WSRECEIVE Campo WSSERVICE VerificaCampo
         SetRestFault(400, 'Campo que será verificado não foi informado') 
         Return .F.
     EndIf
+
+    If !Empty(Self:Empresa)
+        RpcClearEnv()
+        RpcSetType(3)
+        RpcSetEnv(Self:Empresa)
+    EndIf
+
+    cNomeCampo    := readValue('SX3', 2, PadR(Upper(Self:Campo),10) , 'X3_CAMPO') 
+    cAlias        := readValue('SX3', 2, cNomeCampo, 'X3_ARQUIVO') 
+    cTipoCampo    := Upper( readValue('SX3', 2, cNomeCampo, 'X3_CONTEXT') )
 
     If Empty(cNomeCampo)
         lRet := .F.
@@ -145,7 +156,7 @@ WSMETHOD GET  WSRECEIVE Campo WSSERVICE VerificaCampo
             cMsg := "Campo existe fisicamente"
         Else
             lRet := .F.
-            cMsg := "Campo físico não criado na estrutura da tabela}
+            cMsg := "Campo físico não criado na estrutura da tabela"
         EndIf
 
         DBCloseArea()
@@ -179,11 +190,12 @@ WSRESTFUL VerificaParametro DESCRIPTION "Verifica Parametro" FORMAT "application
     WSDATA Contspa 		    AS STRING OPTIONAL
     WSDATA Conteng 		    AS STRING OPTIONAL
     WSDATA Filial 		    AS STRING OPTIONAL
+    WSDATA Empresa 		    AS STRING OPTIONAL
 
     WSMETHOD GET  DESCRIPTION "Verifica Parametro" 	PRODUCES APPLICATION_JSON
 END WSRESTFUL
 
-WSMETHOD GET  WSRECEIVE Parametro,Conteud,Contspa,Conteng,Filial WSSERVICE VerificaParametro
+WSMETHOD GET  WSRECEIVE Parametro,Conteud,Contspa,Conteng,Filial,Empresa WSSERVICE VerificaParametro
  
     Local lStsBra   := .F.
     Local lStsSpa   := .F.
@@ -195,13 +207,19 @@ WSMETHOD GET  WSRECEIVE Parametro,Conteud,Contspa,Conteng,Filial WSSERVICE Verif
     Local oContSpa  := Nil
     Local oContEng  := Nil
 
-    If !Empty(Self:Filial) 
-        cFilAnt := Self:Filial
-    EndIf
-
     If Empty(Self:Parametro)
         SetRestFault(400, 'Parametro que será verificado não foi informado') 
         Return .F.
+    EndIf
+
+    If !Empty(Self:Empresa)
+        RpcClearEnv()
+        RpcSetType(3)
+        RpcSetEnv(Self:Empresa)
+    EndIf
+
+    If !Empty(Self:Filial) 
+        cFilAnt := Self:Filial
     EndIf
 
     if GetMv(Self:Parametro,.t.)
@@ -235,32 +253,33 @@ WSMETHOD GET  WSRECEIVE Parametro,Conteud,Contspa,Conteng,Filial WSSERVICE Verif
             lStsEng := .F.		
         endif
 
+        if !lStsBra .or. !lStsSpa .or. !lStsEng 
+            lRet := .F.
+            cMsg  := "Parâmetro com dados desatualizados"
+        endif
+
+        oConteud := JsonUtil():New()
+        oConteud:PutVal("x6_conteud", alltrim(cvaltochar(SX6->X6_CONTEUD)))
+        oConteud:PutVal("status", lStsBra)
+
+        oContSpa := JsonUtil():New()
+        oContSpa:PutVal("x6_contspa", alltrim(cvaltochar(SX6->X6_CONTSPA)))
+        oContSpa:PutVal("status", lStsSpa)
+
+        oContEng := JsonUtil():New()
+        oContEng:PutVal("x6_conteng", alltrim(cvaltochar(SX6->X6_CONTENG)))
+        oContEng:PutVal("status", lStsEng)
+
+        oJson:PutVal("result",lRet)
+        oJson:PutVal("msg", cMsg)
+        oJson:PutVal("obj",{oConteud , oContSpa , oContEng})
+
     else
-        SetRestFault(400, 'Parametro não existe no ambiente') 
-        Return .F.
+        oJson:PutVal("result", .F.)
+        oJson:PutVal("msg", 'Parametro não existe no ambiente')
+        oJson:PutVal("obj",{})
     endif
-
-    if !lStsBra .or. !lStsSpa .or. !lStsEng 
-        lRet := .F.
-        cMsg  := "Parâmetro com dados desatualizados"
-    endif
-
-    oConteud := JsonUtil():New()
-	oConteud:PutVal("x6_conteud", alltrim(cvaltochar(SX6->X6_CONTEUD)))
-    oConteud:PutVal("status", lStsBra)
-
-    oContSpa := JsonUtil():New()
-	oContSpa:PutVal("x6_contspa", alltrim(cvaltochar(SX6->X6_CONTSPA)))
-    oContSpa:PutVal("status", lStsSpa)
-
-    oContEng := JsonUtil():New()
-	oContEng:PutVal("x6_conteng", alltrim(cvaltochar(SX6->X6_CONTENG)))
-    oContEng:PutVal("status", lStsEng)
-
-    oJson:PutVal("result",lRet)
-    oJson:PutVal("msg", cMsg)
-    oJson:PutVal("obj",{oConteud , oContSpa , oContEng})
-
+    
     Self:SetResponse( oJson:ToJson() )
 
 Return .T.
@@ -279,16 +298,14 @@ WSRESTFUL VerificaFonte DESCRIPTION "Verifica Fonte" FORMAT "application/json"
     WSDATA Collection 		AS STRING OPTIONAL
     WSDATA Arquivo 		    AS STRING OPTIONAL
     WSDATA ChangeSet 		AS STRING OPTIONAL
+    WSDATA Ambiente 		AS STRING OPTIONAL
 
     WSMETHOD GET  DESCRIPTION "Verifica Fonte" 	PRODUCES APPLICATION_JSON
 END WSRESTFUL
 
-WSMETHOD GET  WSRECEIVE Collection,Arquivo,ChangeSet WSSERVICE VerificaFonte
+WSMETHOD GET  WSRECEIVE Collection,Arquivo,ChangeSet,Ambiente WSSERVICE VerificaFonte
 
     Local nI := 0
-    Local aData := {}
-    Local cFonte
-    Local aFonte
     Local aFontesRet := {}
     Local lRet  := .T.
     Local cMsg  := "Fontes atualizados no ambiente"
@@ -301,36 +318,30 @@ WSMETHOD GET  WSRECEIVE Collection,Arquivo,ChangeSet WSSERVICE VerificaFonte
         Return .F.
     EndIf
 
-    //Funcoes auxiliares para resultado do TFS
-    aData := U_TDataArqTFS(Self:Arquivo,Self:Collection,Self:ChangeSet)
-    aFonte := StrTokArr(Self:Arquivo,"/")
-    cFonte := aFonte[len(aFonte)]
+    aFontesRet := StartJob("u_VerFonte", If(Empty(Self:Ambiente), getenvserver(),Self:Ambiente) ,.T.,Self:Arquivo,Self:Collection,Self:ChangeSet)
 
-    //verifica se o fonte existe no RPO
-    if len(GetSrcArray(cFonte)) > 0
-        //verifica data e hora
-        if GetAPOInfo(GetSrcArray(cFonte)[1])[4] < aData[1] .OR.;
-            ( GetAPOInfo(GetSrcArray(cFonte)[1])[4] == aData[1] .AND. left(GetAPOInfo(GetSrcArray(cFonte)[1])[5],5) < left(aData[2],5) )
-            lRet := .F.
-            aAdd( aFontesRet, {cFonte,"Data Invalida no RPO"})
-        Else
-            aAdd( aFontesRet, {cFonte,"Compilado"})
-        EndIf
+    If ValType(aFontesRet) != "A"
+        SetRestFault(400, 'Erro ao conectar no ambiente informado') 
+        Return .F.
+    EndIf
+
+    If Len(aFontesRet) > 0
+        //Retorno dos itens
+        for nI:= 1 to Len(aFontesRet)
+
+            If !aFontesRet[nI][3]
+                lRet := .F.
+                cMsg := "Pelo menos um dos fontes estão desatualizados no ambiente"
+            EndIf
+
+            oItem := JsonUtil():New()
+            oItem:PutVal("fonte", aFontesRet[nI][1])
+            oItem:PutVal("status", aFontesRet[nI][2])
+            aadd(aObj,oItem)
+        next nI
     Else
         lRet := .F.
-        aAdd( aFontesRet, {cFonte,"Não existe no RPO"})
-    endif
-
-    //Retorno dos itens
-    for nI:= 1 to Len(aFontesRet)
-        oItem := JsonUtil():New()
-        oItem:PutVal("fonte", aFontesRet[nI][1])
-        oItem:PutVal("status", aFontesRet[nI][2])
-        aadd(aObj,oItem)
-    next nI
-
-    If !lRet
-        cMsg := "Pelo menos um dos fontes estão desatualizados no ambiente"
+        cMsg := "Nenhum arquivo valido para verificar neste ChangeSet"
     EndIf
 
     oJson:PutVal("result",lRet)
@@ -340,6 +351,44 @@ WSMETHOD GET  WSRECEIVE Collection,Arquivo,ChangeSet WSSERVICE VerificaFonte
     Self:SetResponse( oJson:ToJson() )
 
 Return .T.
+
+//-------------------------------------------------------------------
+/*/{Protheus.doc} VerFonte
+Função auxiliar, para veficar data no RPO atraves do arquivo, changeset e collection
+@author jose.camilo
+@since 29/07/2017
+@function VerFonte
+@receiver Collection e changeset do TFS referente ao artefato
+@return artefato e status
+/*/
+User Function VerFonte(cArquivo,cCollection,cChangeSet)
+
+Local aFontesRes := {}
+Local aData := {}
+Local cFonte
+Local aFonte
+
+//Funcoes auxiliares para resultado do TFS
+aData := U_TDataArqTFS(cArquivo,cCollection,cChangeSet)
+aFonte := StrTokArr(cArquivo,"/")
+cFonte := aFonte[len(aFonte)]
+
+//verifica se o fonte existe no RPO
+if len(GetSrcArray(cFonte)) > 0
+    //verifica data e hora
+    if GetAPOInfo(GetSrcArray(cFonte)[1])[4] < aData[1] .OR.;
+        ( GetAPOInfo(GetSrcArray(cFonte)[1])[4] == aData[1] .AND. left(GetAPOInfo(GetSrcArray(cFonte)[1])[5],5) < left(aData[2],5) )
+        lRet := .F.
+        aAdd( aFontesRes, {cFonte,"Data Invalida no RPO",.F.})
+    Else
+        aAdd( aFontesRes, {cFonte,"Compilado",.T.})
+    EndIf
+Else
+    lRet := .F.
+    aAdd( aFontesRes, {cFonte,"Não existe no RPO",.F.})
+endif
+
+Return aFontesRes
 
 //-------------------------------------------------------------------
 /*/{Protheus.doc} VerificaChangeSet
@@ -354,17 +403,14 @@ Atraves do changeset, Verifica se os artefatos commitados no TFS, esta atualizad
 WSRESTFUL VerificaChangeSet DESCRIPTION "Verifica ChangeSet" FORMAT "application/json"
     WSDATA Collection 		AS STRING OPTIONAL
     WSDATA ChangeSet 		AS STRING OPTIONAL
+    WSDATA Ambiente 		AS STRING OPTIONAL
 
     WSMETHOD GET  DESCRIPTION "Verifica ChangeSet" 	PRODUCES APPLICATION_JSON
 END WSRESTFUL
 
-WSMETHOD GET  WSRECEIVE Collection,ChangeSet WSSERVICE VerificaChangeSet
+WSMETHOD GET  WSRECEIVE Collection,ChangeSet,Ambiente WSSERVICE VerificaChangeSet
 
-    Local aArquivos := {}
     Local nI := 0
-    Local aData := {}
-    Local cFonte
-    Local aFonte
     Local aFontesRet := {}
     Local lRet  := .T.
     Local cMsg  := "Fontes atualizados no ambiente"
@@ -377,46 +423,30 @@ WSMETHOD GET  WSRECEIVE Collection,ChangeSet WSSERVICE VerificaChangeSet
         Return .F.
     EndIf
 
-    aArquivos := u_TListArqTFS(Self:Collection,Self:ChangeSet)
+    aFontesRet := StartJob("u_VerChaSet", If(Empty(Self:Ambiente), getenvserver(),Self:Ambiente) ,.T.,Self:Collection,Self:ChangeSet)
 
-    If Len(aArquivos) > 0
-        For nI:=1 to Len(aArquivos)
-
-            aData := U_TDataArqTFS(aArquivos[nI],Self:Collection,Self:ChangeSet)
-            aFonte := StrTokArr(aArquivos[nI],"/")
-            cFonte := aFonte[len(aFonte)]
-            
-            if !(upper(right(cFonte,3)) $ 'PRW/PRX')
-                loop
-            endif
-
-            //verifica se o fonte existe no RPO
-            if len(GetSrcArray(cFonte)) > 0
-                //verifica data e hora
-                if GetAPOInfo(GetSrcArray(cFonte)[1])[4] < aData[1] .OR.;
-                    ( GetAPOInfo(GetSrcArray(cFonte)[1])[4] == aData[1] .AND. left(GetAPOInfo(GetSrcArray(cFonte)[1])[5],5) < left(aData[2],5) )
-                    lRet := .F.
-                    aAdd( aFontesRet, {cFonte,"Data Invalida no RPO"})
-                Else
-                    aAdd( aFontesRet, {cFonte,"Compilado"})
-                EndIf
-            Else
-                lRet := .F.
-                aAdd( aFontesRet, {cFonte,"Não existe no RPO"})
-            endif
-        Next nI
+    If ValType(aFontesRet) != "A"
+        SetRestFault(400, 'Erro ao conectar no ambiente informado') 
+        Return .F.
     EndIf
 
-    //Retorno dos itens
-    for nI:= 1 to Len(aFontesRet)
-        oItem := JsonUtil():New()
-        oItem:PutVal("fonte", aFontesRet[nI][1])
-        oItem:PutVal("status", aFontesRet[nI][2])
-        aadd(aObj,oItem)
-    next nI
+    If Len(aFontesRet) > 0
+        //Retorno dos itens
+        for nI:= 1 to Len(aFontesRet)
 
-    If !lRet
-        cMsg := "Pelo menos um dos fontes estão desatualizados no ambiente"
+            If !aFontesRet[nI][3]
+                lRet := .F.
+                cMsg := "Pelo menos um dos fontes estão desatualizados no ambiente"
+            EndIf
+
+            oItem := JsonUtil():New()
+            oItem:PutVal("fonte", aFontesRet[nI][1])
+            oItem:PutVal("status", aFontesRet[nI][2])
+            aadd(aObj,oItem)
+        next nI
+    Else
+        lRet := .F.
+        cMsg := "Nenhum arquivo valido para verificar neste ChangeSet"
     EndIf
 
     oJson:PutVal("result",lRet)
@@ -426,6 +456,55 @@ WSMETHOD GET  WSRECEIVE Collection,ChangeSet WSSERVICE VerificaChangeSet
     Self:SetResponse( oJson:ToJson() )
 
 Return .T.
+
+//-------------------------------------------------------------------
+/*/{Protheus.doc} VerChaSet
+Função auxiliar, para veficar data no RPO atraves do changeset e collection
+@author jose.camilo
+@since 29/07/2017
+@function VerChaSet
+@receiver Collection e changeset do TFS referente aos artefatos
+@return lista de artefatos e status
+/*/
+User Function VerChaSet(cCollection, cChangeSet)
+
+Local aFontesRes    := {}
+Local aData := {}
+Local cFonte
+Local aFonte
+Local aArquivos := {}
+Local nI := 0
+
+aArquivos := u_TListArqTFS(cCollection,cChangeSet)
+
+If Len(aArquivos) > 0
+    For nI:=1 to Len(aArquivos)
+
+        aData := U_TDataArqTFS(aArquivos[nI],cCollection,cChangeSet)
+        aFonte := StrTokArr(aArquivos[nI],"/")
+        cFonte := aFonte[len(aFonte)]
+        
+        if !(upper(right(cFonte,3)) $ 'PRW/PRX')
+            loop
+        endif
+
+        //verifica se o fonte existe no RPO
+        if len(GetSrcArray(cFonte)) > 0
+            //verifica data e hora
+            if GetAPOInfo(GetSrcArray(cFonte)[1])[4] < aData[1] .OR.;
+                ( GetAPOInfo(GetSrcArray(cFonte)[1])[4] == aData[1] .AND. left(GetAPOInfo(GetSrcArray(cFonte)[1])[5],5) < left(aData[2],5) )
+
+                aAdd( aFontesRes, {cFonte,"Data Invalida no RPO",.F.})
+            Else
+                aAdd( aFontesRes, {cFonte,"Compilado",.T.})
+            EndIf
+        Else
+            aAdd( aFontesRes, {cFonte,"Não existe no RPO",.F.})
+        endif
+    Next nI
+EndIf
+
+Return aFontesRes
 
 //-------------------------------------------------------------------
 /*/{Protheus.doc} TListArqTFS
@@ -539,6 +618,8 @@ User Function TDataArqTFS(cArquivo,cCollection,cChangeSet)
     Default cChangeSet := ""
     Default cCollection := ""
 
+    SET DATE FORMAT "dd/mm/yyyy"
+
     // Cria o objeto da classe TWsdlManager
     oWsdl := TWsdlManager():New()
 
@@ -610,11 +691,12 @@ Verifica se a tabela existe no ambiente e se possivel a cria
 /*/
 WSRESTFUL VerificaAlias DESCRIPTION "Verifica e cria alias" FORMAT "application/json"
     WSDATA Alias 		AS STRING OPTIONAL
+    WSDATA Empresa 		AS STRING OPTIONAL
 
     WSMETHOD GET  DESCRIPTION "Verifica e cria alias" 	PRODUCES APPLICATION_JSON
 END WSRESTFUL
 
-WSMETHOD GET  WSRECEIVE Alias WSSERVICE VerificaAlias
+WSMETHOD GET  WSRECEIVE Alias,Empresa WSSERVICE VerificaAlias
 
     Local cError := ""
     Local oError := ErrorBlock({|e| cError := e:Description})
@@ -625,6 +707,12 @@ WSMETHOD GET  WSRECEIVE Alias WSSERVICE VerificaAlias
     If Empty(Self:Alias)
         SetRestFault(400, 'Tabela que será verificada não foi informada') 
         Return .F.
+    EndIf
+
+    If !Empty(Self:Empresa)
+        RpcClearEnv()
+        RpcSetType(3)
+        RpcSetEnv(Self:Empresa)
     EndIf
  
     Begin Sequence
@@ -661,16 +749,33 @@ WSRESTFUL VerificaIndice DESCRIPTION "Verifica a existencia do indice fisicament
     WSDATA alias        AS STRING OPTIONAL
     WSDATA order        AS INTEGER OPTIONAL
     WSDATA nickName     AS STRING OPTIONAL
+    WSDATA Empresa 		AS STRING OPTIONAL
 
     WSMETHOD GET  DESCRIPTION "Verifica a existencia do indice fisicamente na tabela" 	PRODUCES APPLICATION_JSON
 END WSRESTFUL
 
-WSMETHOD GET WSRECEIVE alias, order, nickName WSSERVICE VerificaIndice
+WSMETHOD GET WSRECEIVE alias, order, nickName, Empresa WSSERVICE VerificaIndice
 
     Local cError := ""
     Local oError := ErrorBlock({|e| cError := e:Description})
     Local oJson  := JsonUtil():New()
     
+    If Empty(Self:alias)
+        SetRestFault(400, 'Alias que será verificada não foi informado') 
+        Return .F.
+    EndIf
+
+    If Empty(Self:order) .And. Empty(Self:nickName)
+        SetRestFault(400, 'Indice que será verificado não foi informado') 
+        Return .F.
+    EndIf
+
+    If !Empty(Self:Empresa)
+        RpcClearEnv()
+        RpcSetType(3)
+        RpcSetEnv(Self:Empresa)
+    EndIf
+
     Begin Sequence
         dbSelectArea(self:alias)
         if empty( self:nickName )
@@ -713,6 +818,7 @@ WSRESTFUL dicFileCreate DESCRIPTION "Cria arquivo no formato informado conforme 
     WSDATA diretorio 	AS STRING
     WSDATA tipo 	    AS STRING   // sx2,sx3,six,sx6,sx7,sx1,sxb
     WSDATA estrutura    AS ARRAY
+    WSDATA Empresa 		AS STRING OPTIONAL
 
 	WSMETHOD PUT DESCRIPTION    "Cria arquivo no formato informado conforme __LocalDriver"	PRODUCES APPLICATION_JSON
 END WSRESTFUL
@@ -735,6 +841,12 @@ WSMETHOD PUT WSSERVICE dicFileCreate
     else
 
         if fWJsonDeserialize(alltrim(cBody),@oRequest)
+
+            If !Empty(oRequest:Empresa)
+                RpcClearEnv()
+                RpcSetType(3)
+                RpcSetEnv(oRequest:Empresa)
+            EndIf
                 
             if !( upper(alltrim(oRequest:tipo)) $ 'SX1;SX2;SX3;SX6;SX7;SXB;SIX' )
                 SetRestFault(400, "Tipo informado invalido!")
@@ -742,7 +854,7 @@ WSMETHOD PUT WSSERVICE dicFileCreate
             endif
         
             // MONTA O NOME DO ARQUIVO
-            cName := 'dicFileCreate_' + oRequest:tipo + '_' + dtos(date())
+            cName := 'dicFileCreate_' + oRequest:tipo + '_' + dtos(date()) + strtran(time(),":","")
             
             // SE NAO PREENCHER O DRIVER ASSUMIRA O DEFAULT COMO DBF
             if empty(oRequest:driver)
@@ -886,7 +998,7 @@ WSMETHOD PUT WSSERVICE dicFileCreate
                         endif
                     next 
                     
-                    //Aplica o Filtro 
+                    //Aplica o Filtro
                     dbSelectArea('SIX')
                     SIX->( dbSetFilter({|| &cFilter},cFilter) )
                     SIX->( dbGoTop() )
@@ -943,11 +1055,12 @@ WSRESTFUL EstruturaSxs DESCRIPTION "Retorna a estrutura de um dicionario" FORMAT
     WSDATA Filial 		AS STRING OPTIONAL 
     WSDATA Ordem 		AS STRING OPTIONAL
     WSDATA Sequencia	AS STRING OPTIONAL
+    WSDATA Empresa 		AS STRING OPTIONAL
 
     WSMETHOD GET  DESCRIPTION "Retorna a estrutura de um dicionario" 	PRODUCES APPLICATION_JSON
 END WSRESTFUL
 
-WSMETHOD GET  WSRECEIVE Tipo, Valor, Filial, Ordem, Sequencia WSSERVICE EstruturaSxs
+WSMETHOD GET  WSRECEIVE Tipo, Valor, Filial, Ordem, Sequencia, Empresa WSSERVICE EstruturaSxs
 
     Local cBusca        := ""
     Local nTamSXs       := 0
@@ -963,6 +1076,12 @@ WSMETHOD GET  WSRECEIVE Tipo, Valor, Filial, Ordem, Sequencia WSSERVICE Estrutur
     Local oJson := JsonUtil():New()
     Local oItem := Nil
     Local aObj  := {}
+
+    If !Empty(Self:Empresa)
+        RpcClearEnv()
+        RpcSetType(3)
+        RpcSetEnv(Self:Empresa)
+    EndIf
 
     If Upper(self:Tipo) == 'TABELA'
 
@@ -1098,11 +1217,12 @@ Retorna o nome dos campos de uma tabela
 /*/
 WSRESTFUL NomeCampos DESCRIPTION "Retorna o nome dos campos de uma tabela" FORMAT "application/json"
     WSDATA Tabela	AS STRING
+    WSDATA Empresa 		AS STRING OPTIONAL
 
     WSMETHOD GET  DESCRIPTION "Retorna o nome dos campos de uma tabela" 	PRODUCES APPLICATION_JSON
 END WSRESTFUL
 
-WSMETHOD GET  WSRECEIVE Tabela WSSERVICE NomeCampos
+WSMETHOD GET  WSRECEIVE Tabela, Empresa WSSERVICE NomeCampos
 
     Local nTamanho  := 0
     Local nI        := 0
@@ -1112,6 +1232,12 @@ WSMETHOD GET  WSRECEIVE Tabela WSSERVICE NomeCampos
     If Empty(Self:Tabela)
         SetRestFault(400, "Tabela não informada")        
         Return .F.
+    EndIf
+
+    If !Empty(Self:Empresa)
+        RpcClearEnv()
+        RpcSetType(3)
+        RpcSetEnv(Self:Empresa)
     EndIf
 
     dbSelectArea(Self:Tabela)
@@ -1144,11 +1270,12 @@ WSRESTFUL VerificaAtributoCampo DESCRIPTION "Retorna se o conteudo de um atribut
     WSDATA Campo	AS STRING
     WSDATA Atributo	AS STRING
     WSDATA Valor	AS STRING
+    WSDATA Empresa	AS STRING OPTIONAL
 
     WSMETHOD GET  DESCRIPTION "Retorna se o conteudo de um atributo de um campo, esta correto" 	PRODUCES APPLICATION_JSON
 END WSRESTFUL
 
-WSMETHOD GET  WSRECEIVE Campo, Atributo, Valor WSSERVICE VerificaAtributoCampo
+WSMETHOD GET  WSRECEIVE Campo, Atributo, Valor, Empresa WSSERVICE VerificaAtributoCampo
 
     Local oJson     := JsonUtil():New()
     Local xValorAmb
@@ -1158,6 +1285,12 @@ WSMETHOD GET  WSRECEIVE Campo, Atributo, Valor WSSERVICE VerificaAtributoCampo
     If Empty(Self:Campo) .Or. Empty(Self:Atributo) .Or. Empty(Self:Valor)
         SetRestFault(400, 'Campo, Atributo ou Valor não informado') 
         Return .F.
+    EndIf
+
+    If !Empty(Self:Empresa)
+        RpcClearEnv()
+        RpcSetType(3)
+        RpcSetEnv(Self:Empresa)
     EndIf
 
     xValorAmb   := readValue('SX3', 2, PadR(Upper(Self:Campo),10) , Upper(Self:Atributo))
@@ -1188,11 +1321,12 @@ Verifica se uma consulta padrao sxb, existe no ambiente
 /*/
 WSRESTFUL VerificaConsulta DESCRIPTION "Retorna se uma consulta existe" FORMAT "application/json"
     WSDATA Consulta	AS STRING
+    WSDATA Empresa	AS STRING OPTIONAL
 
     WSMETHOD GET  DESCRIPTION "Retorna se uma consulta existe" 	PRODUCES APPLICATION_JSON
 END WSRESTFUL
 
-WSMETHOD GET  WSRECEIVE Consulta WSSERVICE VerificaConsulta
+WSMETHOD GET  WSRECEIVE Consulta, Empresa WSSERVICE VerificaConsulta
 
     Local oJson     := JsonUtil():New()
     Local lRet := .F.
@@ -1201,6 +1335,12 @@ WSMETHOD GET  WSRECEIVE Consulta WSSERVICE VerificaConsulta
     If Empty(Self:Consulta)
         SetRestFault(400, 'Consulta não informada') 
         Return .F.
+    EndIf
+
+    If !Empty(Self:Empresa)
+        RpcClearEnv()
+        RpcSetType(3)
+        RpcSetEnv(Self:Empresa)
     EndIf
 
     dbSelectArea('SXB')
@@ -1233,11 +1373,12 @@ Verifica se um gatilho sx7, existe no ambiente
 WSRESTFUL VerificaGatilho DESCRIPTION "Retorna se um Gatilho existe" FORMAT "application/json"
     WSDATA Gatilho	AS STRING
     WSDATA Sequencia	AS STRING
+    WSDATA Empresa	AS STRING OPTIONAL
 
     WSMETHOD GET  DESCRIPTION "Retorna se um Gatilho existe" 	PRODUCES APPLICATION_JSON
 END WSRESTFUL
 
-WSMETHOD GET  WSRECEIVE Gatilho, Sequencia WSSERVICE VerificaGatilho
+WSMETHOD GET  WSRECEIVE Gatilho, Sequencia, Empresa WSSERVICE VerificaGatilho
 
     Local oJson := JsonUtil():New()
     Local lRet := .F.
@@ -1246,6 +1387,12 @@ WSMETHOD GET  WSRECEIVE Gatilho, Sequencia WSSERVICE VerificaGatilho
     If Empty(Self:Gatilho) .Or. Empty(Self:Sequencia)
         SetRestFault(400, 'Gatilho ou Sequencia não informado') 
         Return .F.
+    EndIf
+
+    If !Empty(Self:Empresa)
+        RpcClearEnv()
+        RpcSetType(3)
+        RpcSetEnv(Self:Empresa)
     EndIf
 
     dbSelectArea('SX7')
@@ -1279,6 +1426,7 @@ Recupera um campo de uma base e grava no ambiente corrente
 WSRESTFUL GravaCampo DESCRIPTION "Recupera o dado de uma base e grava na corrente" FORMAT "application/json"
     WSDATA Origem	AS STRING
     WSDATA Campo	AS STRING
+    WSDATA Empresa	AS STRING OPTIONAL
 
     WSMETHOD POST  DESCRIPTION "Recupera o dado de uma base e grava na corrente" 	PRODUCES APPLICATION_JSON
 END WSRESTFUL
@@ -1302,8 +1450,14 @@ WSMETHOD POST WSSERVICE GravaCampo
 
         if fWJsonDeserialize(alltrim(cBody),@oRequest)
 
+            If !Empty(oRequest:Empresa)
+                RpcClearEnv()
+                RpcSetType(3)
+                RpcSetEnv(oRequest:Empresa)
+            EndIf
+
             oRestClient := FWRest():New(oRequest:Origem)
-            oRestClient:setPath("/EstruturaSxs?tipo=campo&valor=" + oRequest:Campo)
+            oRestClient:setPath("/EstruturaSxs?tipo=campo&valor=" + oRequest:Campo + "&empresa=" + cEmpAnt)
             If oRestClient:Get()
 
                 if fWJsonDeserialize(oRestClient:GetResult(),@oReqAux)
@@ -1375,6 +1529,7 @@ WSRESTFUL GravaAtributoCampo DESCRIPTION "Recupera o atributo de um campo em uma
     WSDATA Origem	AS STRING
     WSDATA Campo	AS STRING
     WSDATA Atributo	AS STRING
+    WSDATA Empresa	AS STRING OPTIONAL
 
     WSMETHOD PUT  DESCRIPTION "Recupera o atributo de um campo em uma base e grava na corrente" 	PRODUCES APPLICATION_JSON
 END WSRESTFUL
@@ -1399,12 +1554,18 @@ WSMETHOD PUT WSSERVICE GravaAtributoCampo
 
         if fWJsonDeserialize(alltrim(cBody),@oRequest)
 
+            If !Empty(oRequest:Empresa)
+                RpcClearEnv()
+                RpcSetType(3)
+                RpcSetEnv(oRequest:Empresa)
+            EndIf
+
             cOrigem := oRequest:Origem
             cCampo := oRequest:Campo
             cAtributo := oRequest:Atributo
 
             oRestClient := FWRest():New(cOrigem)
-            oRestClient:setPath("/EstruturaSxs?tipo=campo&valor=" + cCampo)
+            oRestClient:setPath("/EstruturaSxs?tipo=campo&valor=" + cCampo + "&empresa=" + cEmpAnt)
             
             If oRestClient:Get()
 
@@ -1478,6 +1639,7 @@ WSRESTFUL GravaParametro DESCRIPTION "Recupera um parametro em uma base de orige
     WSDATA Origem	AS STRING
     WSDATA Parametro	AS STRING
     WSDATA Filial	AS STRING
+    WSDATA Empresa	AS STRING OPTIONAL
 
     WSMETHOD POST  DESCRIPTION "Recupera um parametro em uma base de origem e grava no ambiente corrente" 	PRODUCES APPLICATION_JSON
 END WSRESTFUL
@@ -1503,9 +1665,15 @@ WSMETHOD POST WSSERVICE GravaParametro
 
             cFilSelect := If(Empty(oRequest:Filial) , Space(Len(cFilAnt)) ,oRequest:Filial )
             cParametro := oRequest:Parametro
+            
+            If !Empty(oRequest:Empresa)
+                RpcClearEnv()
+                RpcSetType(3)
+                RpcSetEnv(oRequest:Empresa)
+            EndIf
 
             oRestClient := FWRest():New(oRequest:Origem)
-            oRestClient:setPath("/EstruturaSxs?tipo=parametro&valor=" + oRequest:Parametro + "&filial="+ oRequest:Filial)
+            oRestClient:setPath("/EstruturaSxs?tipo=parametro&valor=" + oRequest:Parametro + "&filial="+ oRequest:Filial + "&empresa=" + cEmpAnt)
             If oRestClient:Get()
 
                 if fWJsonDeserialize(oRestClient:GetResult(),@oReqAux)
@@ -1588,6 +1756,7 @@ WSRESTFUL GravaAtributoParametro DESCRIPTION "Recupera um atributo de um paramet
     WSDATA Parametro	AS STRING
     WSDATA Filial	AS STRING
     WSDATA Atributo	AS STRING
+    WSDATA Empresa 		AS STRING OPTIONAL
 
     WSMETHOD PUT  DESCRIPTION "Recupera um atributo de um parametro em um ambiente de origem e grava no corrente" 	PRODUCES APPLICATION_JSON
 END WSRESTFUL
@@ -1618,9 +1787,15 @@ WSMETHOD PUT WSSERVICE GravaAtributoParametro
             cFilSelect := If(Empty(oRequest:Filial) , Space(Len(cFilAnt)) ,oRequest:Filial )
             cParametro := oRequest:Parametro
             cAtributo := oRequest:Atributo
+            
+            If !Empty(oRequest:Empresa)
+                RpcClearEnv()
+                RpcSetType(3)
+                RpcSetEnv(oRequest:Empresa)
+            EndIf
 
             oRestClient := FWRest():New(cOrigem)
-            oRestClient:setPath("/EstruturaSxs?tipo=parametro&valor=" + oRequest:Parametro + "&filial="+ oRequest:Filial)
+            oRestClient:setPath("/EstruturaSxs?tipo=parametro&valor=" + oRequest:Parametro + "&filial="+ oRequest:Filial + "&empresa=" + cEmpAnt)
             
 
             If oRestClient:Get()
@@ -1691,6 +1866,7 @@ WSRESTFUL GravaGatilho DESCRIPTION "Recupera um gatilho de uma base de rigem e g
     WSDATA Origem	AS STRING
     WSDATA Gatilho	AS STRING
     WSDATA Sequencia AS STRING
+    WSDATA Empresa 		AS STRING OPTIONAL
 
     WSMETHOD POST  DESCRIPTION "Recupera um gatilho de uma base de rigem e grava na corrente" 	PRODUCES APPLICATION_JSON
 END WSRESTFUL
@@ -1715,8 +1891,14 @@ WSMETHOD POST WSSERVICE GravaGatilho
 
         if fWJsonDeserialize(alltrim(cBody),@oRequest)
 
+            If !Empty(oRequest:Empresa)
+                RpcClearEnv()
+                RpcSetType(3)
+                RpcSetEnv(oRequest:Empresa)
+            EndIf
+
             oRestClient := FWRest():New(oRequest:Origem)
-            oRestClient:setPath("/EstruturaSxs?tipo=gatilho&valor=" + oRequest:Gatilho + "&sequencia="+ oRequest:Sequencia)
+            oRestClient:setPath("/EstruturaSxs?tipo=gatilho&valor=" + oRequest:Gatilho + "&sequencia="+ oRequest:Sequencia + "&empresa=" + cEmpAnt)
             If oRestClient:Get()
 
                 if fWJsonDeserialize(oRestClient:GetResult(),@oReqAux)
@@ -1782,6 +1964,7 @@ Recupera uma consulta padrao sxb de um ambiente de origem e grava no corrente
 WSRESTFUL GravaConsulta DESCRIPTION "Recupera uma consulta padrao sxb de um ambiente de origem e grava no corrente" FORMAT "application/json"
     WSDATA Origem	AS STRING
     WSDATA Consulta	AS STRING
+    WSDATA Empresa 		AS STRING OPTIONAL
 
     WSMETHOD POST  DESCRIPTION "Recupera uma consulta padrao sxb de um ambiente de origem e grava no corrente" 	PRODUCES APPLICATION_JSON
 END WSRESTFUL
@@ -1807,8 +1990,14 @@ WSMETHOD POST WSSERVICE GravaConsulta
 
         if fWJsonDeserialize(alltrim(cBody),@oRequest)
 
+            If !Empty(oRequest:Empresa)
+                RpcClearEnv()
+                RpcSetType(3)
+                RpcSetEnv(oRequest:Empresa)
+            EndIf
+
             oRestClient := FWRest():New(oRequest:Origem)
-            oRestClient:setPath("/EstruturaSxs?tipo=consulta&valor=" + oRequest:Consulta)
+            oRestClient:setPath("/EstruturaSxs?tipo=consulta&valor=" + oRequest:Consulta + "&empresa=" + cEmpAnt)
             If oRestClient:Get()
 
                 if fWJsonDeserialize(oRestClient:GetResult(),@oReqAux)

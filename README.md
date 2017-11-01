@@ -14,10 +14,11 @@ Retorna o nome de todos os campos de uma tabela
 * Parâmetros:
 ```
 tabela - string: Tabela onde os campos serão buscados
+empresa - string: Codigo da empresa onde será executado
 ```
 * Requisição:
 ```
-/NomeCampos?tabela=ADF
+/NomeCampos?tabela=ADF&empresa=00
 
 {
     "result": true,
@@ -38,10 +39,11 @@ Verifica se um campo existe no ambiente. Do tipo físico, verifica também a exi
 * Parâmetros:
 ```
 campo - string: Campo que será verificado
+empresa - string: Codigo da empresa onde será executado
 ```
 * Requisição:
 ```
-/VerificaCampo?campo=A1_COD
+/VerificaCampo?campo=A1_COD&empresa=00
 
 {
     "result": true,
@@ -56,13 +58,15 @@ Recupera um campo de uma base e grava no ambiente corrente
 ```
 origem - string: WebService Rest do ambiente de origem do campo
 campo - string: Campo que será copiado
+empresa - string: Codigo da empresa onde será executado
 ```
 * Requisição:
 ```
 /GravaCampo
 {
 	"Origem" : "http://localhost:8083/rest",
-	"Campo" : "A1_COD"
+	"Campo" : "A1_COD",
+    "empresa" : "00"
 }
 
 {
@@ -79,10 +83,11 @@ Verifica se o conteudo de um atributo de um campo, esta atualizado no ambiente
 campo - string: Campo que será verificado
 atributo - string: Atributo (Campo do SX3), que será verificado no Campo passado
 valor - string: valor que deveriar estar gravado no atributo do Campo passado
+empresa - string: Codigo da empresa onde será executado
 ```
 * Requisição:
 ```
-/VerificaAtributoCampo?campo=PF9_MODULO&valor=VAZIO() .OR. EXISTCPO("PF7")&atributo=X3_VLDUSER
+/VerificaAtributoCampo?campo=PF9_MODULO&valor=VAZIO() .OR. EXISTCPO("PF7")&atributo=X3_VLDUSER&empresa=00
 
 {
     "result": true,
@@ -98,6 +103,7 @@ Recupera o atributo de um campo em uma base e grava na corrente
 campo - string: Campo que será verificado
 atributo - string: Atributo (Campo do SX3), que será verificado no Campo passado
 origem - string: WebService Rest do ambiente de origem do campo
+empresa - string: Codigo da empresa onde será executado
 ```
 * Requisição:
 ```
@@ -105,7 +111,8 @@ origem - string: WebService Rest do ambiente de origem do campo
 {
 	"Origem" : "http://localhost:8083/rest",
 	"Campo" : "A1_COD",
-	"Atributo" : "X3_TAMANHO"
+	"Atributo" : "X3_TAMANHO",
+    "empresa" : "00"
 }
 
 {
@@ -126,10 +133,11 @@ conteudo - string: Conteudo Português que deveria estar gravado
 contspa - string: Conteudo Espanhol que deveria estar gravado
 conteng	- string: Conteudo Inglês que deveria estar gravado
 filial - string: Filial onde o parametro será pesquisado
+empresa - string: Codigo da empresa onde será executado
 ```
 * Requisição:
 ```
-/VerificaParametro?parametro=MV_1DUP&conteud=A&contspa=A&conteng=A&filial=01
+/VerificaParametro?parametro=MV_1DUP&conteud=A&contspa=A&conteng=A&filial=01&empresa=00
 
 {
     "result": false,
@@ -158,6 +166,7 @@ Recupera um parametro em uma base de origem e grava no ambiente corrente
 parametro - string: Nome do parâmetro à ser copiado
 filial - string: Filial onde o parametro será pesquisado
 origem - string: WebService Rest do ambiente de origem do parametro
+empresa - string: Codigo da empresa onde será executado
 ```
 * Requisição:
 ```
@@ -166,7 +175,8 @@ origem - string: WebService Rest do ambiente de origem do parametro
 {
 	"Origem" : "http://localhost:8083/rest",
 	"Parametro" : "MV_CIDADE",
-	"Filial" : "00302000500"
+	"Filial" : "00302000500",
+    "empresa" : "00"
 }
 
 {
@@ -184,6 +194,7 @@ parametro - string: Nome do parâmetro à ser copiado
 filial - string: Filial onde o parametro será pesquisado
 atributo - string: Nome do campo do dicionario SX6 que será copiado
 origem - string: WebService Rest do ambiente de origem do parametro
+empresa - string: Codigo da empresa onde será executado
 ```
 * Requisição:
 ```
@@ -193,7 +204,8 @@ origem - string: WebService Rest do ambiente de origem do parametro
 	"Origem" : "http://localhost:8083/rest",
 	"Parametro" : "TI_FIL774",
 	"Filial" : "",
-	"Atributo" : "X6_DESC2"
+	"Atributo" : "X6_DESC2",
+    "empresa" : "00"
 }
 
 {
@@ -208,10 +220,11 @@ Verifica se uma consulta padrao sxb, existe no ambiente
 * Parâmetros:
 ```
 consulta - string: nome da consulta que será verificada
+empresa - string: Codigo da empresa onde será executado
 ```
 * Requisição:
 ```
-/VerificaConsulta?consulta=AA1
+/VerificaConsulta?consulta=AA1&empresa=00
 
 {
     "result": true,
@@ -226,6 +239,7 @@ Recupera uma consulta padrao sxb de um ambiente de origem e grava no corrente
 ```
 consulta - string: nome da consulta que será verificada
 origem - string: WebService Rest do ambiente de origem do parametro
+empresa - string: Codigo da empresa onde será executado
 ```
 * Requisição:
 ```
@@ -233,7 +247,8 @@ origem - string: WebService Rest do ambiente de origem do parametro
 
 {
 	"Origem" : "http://localhost:8083/rest",
-	"Consulta" : "CNBPRP"
+	"Consulta" : "CNBPRP",
+    "empresa" : "00"
 }
 
 {
@@ -249,10 +264,11 @@ Verifica se um gatilho existe no ambiente
 ```
 gatilho - string: nome do campo que realiza o gatilho que será verificado
 sequencia - string: numero da sequencia do gatilho
+empresa - string: Codigo da empresa onde será executado
 ```
 * Requisição:
 ```
-/VerificaGatilho?gatilho=AA3_CBASE&&sequencia=003
+/VerificaGatilho?gatilho=AA3_CBASE&&sequencia=003&empresa=00
 
 {
     "result": true,
@@ -268,6 +284,7 @@ Recupera um gatilho de uma base de origem e grava na corrente
 gatilho - string: nome do campo que realiza o gatilho que será verificado
 sequencia - string: numero da sequencia do gatilho
 origem - string: WebService Rest do ambiente de origem do gatilho
+empresa - string: Codigo da empresa onde será executado
 ```
 * Requisição:
 ```
@@ -276,7 +293,8 @@ origem - string: WebService Rest do ambiente de origem do gatilho
 {
 	"Origem" : "http://localhost:8083/rest",
 	"Gatilho" : "TUU_TIPO",
-	"Sequencia" : "013"
+	"Sequencia" : "013",
+    "empresa" : "00"
 }
 
 {
@@ -292,10 +310,11 @@ Verifica se a tabela existe no ambiente e se possivel a cria
 * Parâmetros:
 ```
 alias - string: tabela que será verificada
+empresa - string: Codigo da empresa onde será executado
 ```
 * Requisição:
 ```
-/VerificaAlias?alias=SA1
+/VerificaAlias?alias=SA1&empresa=00
 
 {
     "result": true,
@@ -313,11 +332,12 @@ alias - string: tabela que será verificada com o indice
 order - string: numero da ordem do indice na tabela
 ou
 nickname - string: apelido do indice na tabela
+empresa - string: Codigo da empresa onde será executado
 ```
 * Requisição:
 ```
-/VerificaIndice?alias=SA1&order=1
-/VerificaIndice?alias=SA9&nickName=SA9CARGO
+/VerificaIndice?alias=SA1&order=1&empresa=00
+/VerificaIndice?alias=SA9&nickName=SA9CARGO&empresa=00
 {
     "result": true,
     "msg": "Indice existe",
@@ -335,10 +355,11 @@ Valor - string: Dado principal da pesquisa : nome da tabela ou campo ou parametr
 Filial - string: Filial usada para pesquisar quando Tipo for parametro
 Ordem - string: Ordem usada para pesquisar quando o Tipo for indice
 Sequencia - string: Sequencia usada para pesquisar quando o Tipo for gatilho
+empresa - string: Codigo da empresa onde será executado
 ```
 * Requisição:
 ```
-/EstruturaSxs?tipo=consulta&valor=1AA
+/EstruturaSxs?tipo=consulta&valor=1AA&empresa=00
 {
     "result": true,
     "msg": "Estrutura encontrada",
@@ -378,6 +399,7 @@ Verifica se uma versão de fonte, comitada no TFS da TOTVS, está compilado no a
 collection - string: Nome da Collection do TFS onde o fonte foi comitdado
 arquivo - string: Caminho completo do arquivo fonte
 changeset - string: Numero de registro do TFS changeSet
+ambiente - string: Nome do Ambiente onde será executado
 ```
 * Requisição:
 ```
@@ -401,6 +423,7 @@ Verifica se um conjunto de fontes, comitado no TFS da TOTVS, está compilado no 
 ```
 collection - string: Nome da Collection do TFS onde o fonte foi comitdado
 changeset - string: Numero de registro do TFS changeSet
+ambiente - string: Nome do Ambiente onde será executado
 ```
 * Requisição:
 ```
@@ -449,6 +472,7 @@ diretorio - string: caminho onde o arquivo será salvo
 tipo - string: tipo do dicionario que será copiado: SX1, SX2, SX3, SX6, SX7, SXB ou SIX
 estrutura - array: dados que serão usados para filtro com a condição 'ou' entre os elementos deste array
 drive - string: driver (RDD) a ser usado para criar o arquivo: DBFCDX, DBFCDXADS, TOPCONN
+empresa - string: Codigo da empresa onde será executado
 ```
 * Requisição:
 ```
@@ -458,7 +482,8 @@ drive - string: driver (RDD) a ser usado para criar o arquivo: DBFCDX, DBFCDXADS
 	"diretorio" : "temp",
 	"tipo" : "SX6",
 	"estrutura" : ["MV_CIDADE"],
-	"driver" : "DBFCDXADS"
+	"driver" : "DBFCDXADS",
+    "empresa" : "00"
 }
 
 {
