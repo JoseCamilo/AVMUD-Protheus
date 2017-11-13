@@ -126,7 +126,10 @@ WSMETHOD GET  WSRECEIVE Campo, Empresa WSSERVICE VerificaCampo
     Local cTipoCampo    := ""
     Local lRet          := .F.
     Local cMsg          := ""
-    Local oJson  := JsonUtil():New()
+    Local oJson         := JsonUtil():New()
+    Local cError        := ""
+    Local oError        := ErrorBlock({|e| cError := e:Description})
+    Local cBkpEmp       := If(Valtype(cEmpAnt)=="C",cEmpAnt,"")
 
     If Empty(Self:Campo)
         SetRestFault(400, 'Campo que será verificado não foi informado') 
@@ -149,17 +152,27 @@ WSMETHOD GET  WSRECEIVE Campo, Empresa WSSERVICE VerificaCampo
 
     ElseIf cTipoCampo == 'R' .or. Empty(cTipoCampo)
         
-        dbSelectArea(cAlias)
+        Begin Sequence
+            DbSelectArea(cAlias)
+        End Sequence
 
-        If FieldPos(cNomeCampo) > 0
-            lRet := .T.
-            cMsg := "Campo existe fisicamente"
-        Else
+        ErrorBlock(oError)
+
+        If !Empty(cError)
             lRet := .F.
-            cMsg := "Campo físico não criado na estrutura da tabela"
-        EndIf
+            cMsg := EspecMsg(cError)
+        Else
 
-        DBCloseArea()
+            If FieldPos(cNomeCampo) > 0
+                lRet := .T.
+                cMsg := "Campo existe fisicamente"
+            Else
+                lRet := .F.
+                cMsg := "Campo físico não criado na estrutura da tabela"
+            EndIf
+
+             DBCloseArea()
+        EndIf
         
     ElseIf cTipoCampo == 'V'
         lRet := .T.
@@ -171,6 +184,12 @@ WSMETHOD GET  WSRECEIVE Campo, Empresa WSSERVICE VerificaCampo
     oJson:PutVal("obj",{})
 
     Self:SetResponse( oJson:ToJson() )
+
+    If !Empty(Self:Empresa) .And. !Empty(cBkpEmp)
+        RpcClearEnv()
+        RpcSetType(3)
+        RpcSetEnv(cBkpEmp)
+    EndIf
 
 Return .T.
 
@@ -206,6 +225,7 @@ WSMETHOD GET  WSRECEIVE Parametro,Conteud,Contspa,Conteng,Filial,Empresa WSSERVI
     Local oConteud  := Nil
     Local oContSpa  := Nil
     Local oContEng  := Nil
+    Local cBkpEmp   := If(Valtype(cEmpAnt)=="C",cEmpAnt,"")
 
     If Empty(Self:Parametro)
         SetRestFault(400, 'Parametro que será verificado não foi informado') 
@@ -261,14 +281,17 @@ WSMETHOD GET  WSRECEIVE Parametro,Conteud,Contspa,Conteng,Filial,Empresa WSSERVI
         oConteud := JsonUtil():New()
         oConteud:PutVal("x6_conteud", alltrim(cvaltochar(SX6->X6_CONTEUD)))
         oConteud:PutVal("status", lStsBra)
+        oConteud:PutVal("msg", If(lStsBra,"Conteudo Português Atualizado","Conteudo Português Desatualizado"))
 
         oContSpa := JsonUtil():New()
         oContSpa:PutVal("x6_contspa", alltrim(cvaltochar(SX6->X6_CONTSPA)))
         oContSpa:PutVal("status", lStsSpa)
+        oContSpa:PutVal("msg", If(lStsSpa,"Conteudo Espanhol Atualizado","Conteudo Espanhol Desatualizado"))
 
         oContEng := JsonUtil():New()
         oContEng:PutVal("x6_conteng", alltrim(cvaltochar(SX6->X6_CONTENG)))
         oContEng:PutVal("status", lStsEng)
+        oContEng:PutVal("msg", If(lStsEng,"Conteudo Inglês Atualizado","Conteudo Inglês Desatualizado"))
 
         oJson:PutVal("result",lRet)
         oJson:PutVal("msg", cMsg)
@@ -281,6 +304,12 @@ WSMETHOD GET  WSRECEIVE Parametro,Conteud,Contspa,Conteng,Filial,Empresa WSSERVI
     endif
     
     Self:SetResponse( oJson:ToJson() )
+
+    If !Empty(Self:Empresa) .And. !Empty(cBkpEmp)
+        RpcClearEnv()
+        RpcSetType(3)
+        RpcSetEnv(cBkpEmp)
+    EndIf
 
 Return .T.
 
@@ -767,6 +796,7 @@ WSMETHOD GET  WSRECEIVE Alias,Empresa WSSERVICE VerificaAlias
     Local lRet  := .T.
     Local cMsg  := "Tabela existe no ambiente"
     Local oJson := JsonUtil():New()
+    Local cBkpEmp       := If(Valtype(cEmpAnt)=="C",cEmpAnt,"")
 
     If Empty(Self:Alias)
         SetRestFault(400, 'Tabela que será verificada não foi informada') 
@@ -797,6 +827,12 @@ WSMETHOD GET  WSRECEIVE Alias,Empresa WSSERVICE VerificaAlias
 
     Self:SetResponse( oJson:ToJson() )
 
+    If !Empty(Self:Empresa) .And. !Empty(cBkpEmp)
+        RpcClearEnv()
+        RpcSetType(3)
+        RpcSetEnv(cBkpEmp)
+    EndIf
+
 Return .T.
 
 //-------------------------------------------------------------------
@@ -823,6 +859,7 @@ WSMETHOD GET WSRECEIVE alias, order, nickName, Empresa WSSERVICE VerificaIndice
     Local cError := ""
     Local oError := ErrorBlock({|e| cError := e:Description})
     Local oJson  := JsonUtil():New()
+    Local cBkpEmp       := If(Valtype(cEmpAnt)=="C",cEmpAnt,"")
     
     If Empty(Self:alias)
         SetRestFault(400, 'Alias que será verificada não foi informado') 
@@ -864,6 +901,12 @@ WSMETHOD GET WSRECEIVE alias, order, nickName, Empresa WSSERVICE VerificaIndice
         Self:SetResponse( oJson:ToJson() )
     EndIf
 
+    If !Empty(Self:Empresa) .And. !Empty(cBkpEmp)
+        RpcClearEnv()
+        RpcSetType(3)
+        RpcSetEnv(cBkpEmp)
+    EndIf
+
 Return .T.
 
 //-------------------------------------------------------------------
@@ -898,6 +941,7 @@ WSMETHOD PUT WSSERVICE dicFileCreate
     Local ext       := '.dbf'
     Local nX        := 0
     Local oRequest
+    Local cBkpEmp       := If(Valtype(cEmpAnt)=="C",cEmpAnt,"")
 
     if empty(cBody)
         SetRestFault(400, "Parametros obrigatorios nao informados no body!")
@@ -1100,6 +1144,12 @@ WSMETHOD PUT WSSERVICE dicFileCreate
         
     endif
 
+    If !Empty(Self:Empresa) .And. !Empty(cBkpEmp)
+        RpcClearEnv()
+        RpcSetType(3)
+        RpcSetEnv(cBkpEmp)
+    EndIf
+
 return lRet
 
 
@@ -1140,6 +1190,7 @@ WSMETHOD GET  WSRECEIVE Tipo, Valor, Filial, Ordem, Sequencia, Empresa WSSERVICE
     Local oJson := JsonUtil():New()
     Local oItem := Nil
     Local aObj  := {}
+    Local cBkpEmp       := If(Valtype(cEmpAnt)=="C",cEmpAnt,"")
 
     If !Empty(Self:Empresa)
         RpcClearEnv()
@@ -1266,6 +1317,13 @@ WSMETHOD GET  WSRECEIVE Tipo, Valor, Filial, Ordem, Sequencia, Empresa WSSERVICE
     oJson:PutVal("obj",aObj)
 
     Self:SetResponse( oJson:ToJson() )
+
+    If !Empty(Self:Empresa) .And. !Empty(cBkpEmp)
+        RpcClearEnv()
+        RpcSetType(3)
+        RpcSetEnv(cBkpEmp)
+    EndIf
+
 Return .T.
 
 
@@ -1292,6 +1350,7 @@ WSMETHOD GET  WSRECEIVE Tabela, Empresa WSSERVICE NomeCampos
     Local nI        := 0
     Local aCampos   := {}
     Local oJson     := JsonUtil():New()
+    Local cBkpEmp       := If(Valtype(cEmpAnt)=="C",cEmpAnt,"")
 
     If Empty(Self:Tabela)
         SetRestFault(400, "Tabela não informada")        
@@ -1304,20 +1363,39 @@ WSMETHOD GET  WSRECEIVE Tabela, Empresa WSSERVICE NomeCampos
         RpcSetEnv(Self:Empresa)
     EndIf
 
-    dbSelectArea(Self:Tabela)
-    nTamanho := FCOUNT()
+    Begin Sequence
+        dbSelectArea(Self:Tabela)
+    End Sequence
 
-    For nI:=1 to nTamanho
-        aAdd(aCampos , FIELD(nI) ) 
-    Next nI
+    ErrorBlock(oError)
 
-    DBCloseArea()
+    If !Empty(cError)
+        lRet := .F.
+        cMsg := EspecMsg(cError)
+    Else
+    
+        nTamanho := FCOUNT()
+
+        For nI:=1 to nTamanho
+            aAdd(aCampos , FIELD(nI) ) 
+        Next nI
+
+        DBCloseArea()
+    EndIf
+    
 
     oJson:PutVal("result",.T.)
     oJson:PutVal("msg","Consulta realizada")
     oJson:PutVal("obj",aCampos)
 
     Self:SetResponse( oJson:ToJson() )    
+
+    If !Empty(Self:Empresa) .And. !Empty(cBkpEmp)
+        RpcClearEnv()
+        RpcSetType(3)
+        RpcSetEnv(cBkpEmp)
+    EndIf
+
 Return .T.
 
 //-------------------------------------------------------------------
@@ -1345,6 +1423,7 @@ WSMETHOD GET  WSRECEIVE Campo, Atributo, Valor, Empresa WSSERVICE VerificaAtribu
     Local xValorAmb
     Local lRet := .F.
     Local cMsg := "Atributo de campo desatualizado"
+    Local cBkpEmp       := If(Valtype(cEmpAnt)=="C",cEmpAnt,"")
 
     If Empty(Self:Campo) .Or. Empty(Self:Atributo) .Or. Empty(Self:Valor)
         SetRestFault(400, 'Campo, Atributo ou Valor não informado') 
@@ -1371,6 +1450,13 @@ WSMETHOD GET  WSRECEIVE Campo, Atributo, Valor, Empresa WSSERVICE VerificaAtribu
     oJson:PutVal("obj", {})
 
     Self:SetResponse( oJson:ToJson() )   
+
+    If !Empty(Self:Empresa) .And. !Empty(cBkpEmp)
+        RpcClearEnv()
+        RpcSetType(3)
+        RpcSetEnv(cBkpEmp)
+    EndIf
+
 Return .T.
 
 //-------------------------------------------------------------------
@@ -1395,6 +1481,7 @@ WSMETHOD GET  WSRECEIVE Consulta, Empresa WSSERVICE VerificaConsulta
     Local oJson     := JsonUtil():New()
     Local lRet := .F.
     Local cMsg := "Consulta não existe"
+    Local cBkpEmp       := If(Valtype(cEmpAnt)=="C",cEmpAnt,"")
 
     If Empty(Self:Consulta)
         SetRestFault(400, 'Consulta não informada') 
@@ -1422,6 +1509,13 @@ WSMETHOD GET  WSRECEIVE Consulta, Empresa WSSERVICE VerificaConsulta
     oJson:PutVal("obj", {})
 
     Self:SetResponse( oJson:ToJson() )    
+
+    If !Empty(Self:Empresa) .And. !Empty(cBkpEmp)
+        RpcClearEnv()
+        RpcSetType(3)
+        RpcSetEnv(cBkpEmp)
+    EndIf
+
 Return .T.
 
 //-------------------------------------------------------------------
@@ -1447,6 +1541,7 @@ WSMETHOD GET  WSRECEIVE Gatilho, Sequencia, Empresa WSSERVICE VerificaGatilho
     Local oJson := JsonUtil():New()
     Local lRet := .F.
     Local cMsg := "Gatilho não existe"
+    Local cBkpEmp       := If(Valtype(cEmpAnt)=="C",cEmpAnt,"")
 
     If Empty(Self:Gatilho) .Or. Empty(Self:Sequencia)
         SetRestFault(400, 'Gatilho ou Sequencia não informado') 
@@ -1474,6 +1569,13 @@ WSMETHOD GET  WSRECEIVE Gatilho, Sequencia, Empresa WSSERVICE VerificaGatilho
     oJson:PutVal("obj", {})
 
     Self:SetResponse( oJson:ToJson() )    
+
+    If !Empty(Self:Empresa) .And. !Empty(cBkpEmp)
+        RpcClearEnv()
+        RpcSetType(3)
+        RpcSetEnv(cBkpEmp)
+    EndIf
+
 Return .T.
 
 
@@ -1506,6 +1608,7 @@ WSMETHOD POST WSSERVICE GravaCampo
     Local oRestClient
     Local oReqAux
     Local xConteudo
+    Local cBkpEmp       := If(Valtype(cEmpAnt)=="C",cEmpAnt,"")
 
     if empty(cBody)
         SetRestFault(400, "Parametros obrigatorios nao informados no body!")
@@ -1577,6 +1680,12 @@ WSMETHOD POST WSSERVICE GravaCampo
 
     EndIf
 
+    If !Empty(Self:Empresa) .And. !Empty(cBkpEmp)
+        RpcClearEnv()
+        RpcSetType(3)
+        RpcSetEnv(cBkpEmp)
+    EndIf
+
 Return lRet
 
 //-------------------------------------------------------------------
@@ -1610,6 +1719,7 @@ WSMETHOD PUT WSSERVICE GravaAtributoCampo
     Local oRestClient
     Local oReqAux
     Local xConteudo
+    Local cBkpEmp       := If(Valtype(cEmpAnt)=="C",cEmpAnt,"")
 
     if empty(cBody)
         SetRestFault(400, "Parametros obrigatorios nao informados no body!")
@@ -1687,6 +1797,12 @@ WSMETHOD PUT WSSERVICE GravaAtributoCampo
 
     EndIf
 
+    If !Empty(Self:Empresa) .And. !Empty(cBkpEmp)
+        RpcClearEnv()
+        RpcSetType(3)
+        RpcSetEnv(cBkpEmp)
+    EndIf
+
 Return lRet
 
 //-------------------------------------------------------------------
@@ -1719,6 +1835,7 @@ WSMETHOD POST WSSERVICE GravaParametro
     Local oRestClient
     Local oReqAux
     Local xConteudo
+    Local cBkpEmp       := If(Valtype(cEmpAnt)=="C",cEmpAnt,"")
 
     if empty(cBody)
         SetRestFault(400, "Parametros obrigatorios nao informados no body!")
@@ -1803,6 +1920,12 @@ WSMETHOD POST WSSERVICE GravaParametro
 
     EndIf
 
+    If !Empty(Self:Empresa) .And. !Empty(cBkpEmp)
+        RpcClearEnv()
+        RpcSetType(3)
+        RpcSetEnv(cBkpEmp)
+    EndIf
+
 Return lRet
 
 //-------------------------------------------------------------------
@@ -1838,6 +1961,7 @@ WSMETHOD PUT WSSERVICE GravaAtributoParametro
     Local oRestClient
     Local oReqAux
     Local xConteudo
+    Local cBkpEmp       := If(Valtype(cEmpAnt)=="C",cEmpAnt,"")
 
 
     if empty(cBody)
@@ -1914,6 +2038,12 @@ WSMETHOD PUT WSSERVICE GravaAtributoParametro
 
     EndIf
 
+    If !Empty(Self:Empresa) .And. !Empty(cBkpEmp)
+        RpcClearEnv()
+        RpcSetType(3)
+        RpcSetEnv(cBkpEmp)
+    EndIf
+
 Return lRet
 
 //-------------------------------------------------------------------
@@ -1946,6 +2076,7 @@ WSMETHOD POST WSSERVICE GravaGatilho
     Local oRestClient
     Local oReqAux
     Local xConteudo
+    Local cBkpEmp       := If(Valtype(cEmpAnt)=="C",cEmpAnt,"")
 
 
     if empty(cBody)
@@ -2013,6 +2144,12 @@ WSMETHOD POST WSSERVICE GravaGatilho
 
     EndIf
 
+    If !Empty(Self:Empresa) .And. !Empty(cBkpEmp)
+        RpcClearEnv()
+        RpcSetType(3)
+        RpcSetEnv(cBkpEmp)
+    EndIf
+
 Return lRet
 
 //-------------------------------------------------------------------
@@ -2045,6 +2182,7 @@ WSMETHOD POST WSSERVICE GravaConsulta
     Local oRestClient
     Local oReqAux
     Local xConteudo
+    Local cBkpEmp       := If(Valtype(cEmpAnt)=="C",cEmpAnt,"")
 
 
     if empty(cBody)
@@ -2112,6 +2250,12 @@ WSMETHOD POST WSSERVICE GravaConsulta
             lRet := .F.
         EndIf
 
+    EndIf
+
+    If !Empty(Self:Empresa) .And. !Empty(cBkpEmp)
+        RpcClearEnv()
+        RpcSetType(3)
+        RpcSetEnv(cBkpEmp)
     EndIf
 
 Return lRet
