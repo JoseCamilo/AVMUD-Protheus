@@ -1127,6 +1127,8 @@ WSMETHOD PUT WSSERVICE dicFileCreate
                 else                        
                     oJson:PutVal("result",.T.)
                     oJson:PutVal("msg",'arquivo copiado com sucesso para: ' + oRequest:diretorio + cFile)
+                    oJson:PutVal("arquivo", cFile)
+                    oJson:PutVal("diretorio", oRequest:diretorio)
                     oJson:PutVal("obj",{})
                     FErase( GetSrvProfString("Startpath","") + cFile ) 
                     ::SetResponse( oJson:ToJson() )
