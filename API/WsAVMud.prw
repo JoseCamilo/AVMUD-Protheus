@@ -1130,6 +1130,7 @@ WSMETHOD PUT WSSERVICE dicFileCreate
                     oJson:PutVal("arquivo", cFile)
                     oJson:PutVal("diretorio", oRequest:diretorio)
                     oJson:PutVal("obj",{})
+                    oJson:PutVal("server",getServerIP())
                     FErase( GetSrvProfString("Startpath","") + cFile ) 
                     ::SetResponse( oJson:ToJson() )
                 endif
