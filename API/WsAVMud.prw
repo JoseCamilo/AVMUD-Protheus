@@ -1063,11 +1063,15 @@ WSMETHOD PUT WSSERVICE dicFileCreate
 
                     // MONTA O FILTRO PODE PASSAR MAIS DE GATILHO
                     for nX := 1 to len(oRequest:estrutura)
-                        if nX == len(oRequest:estrutura)
-                            cFilter += "X7_CAMPO == '" + PadR(oRequest:estrutura[nX],10,'') + "' "
-                        else
-                            cFilter += "X7_CAMPO == '" + PadR(oRequest:estrutura[nX],10,'') + "' .OR. "
-                        endif
+
+                        // Só adiciona no filtro, nas posicoes impares/principais/X7_CAMPO
+                        If Mod(nX,2) != 0
+                            if nX + 1 == len(oRequest:estrutura)
+                                cFilter += "X7_CAMPO == '" + PadR(oRequest:estrutura[nX],10,'') + "' .AND. X7_SEQUENC == '" + StrZero( Val(oRequest:estrutura[nX+1]), 3) + "' "
+                            else
+                                cFilter += "X7_CAMPO == '" + PadR(oRequest:estrutura[nX],10,'') + "' .AND. X7_SEQUENC == '" + StrZero( Val(oRequest:estrutura[nX+1]), 3) + "' .OR. "
+                            endif
+                        EndIf
                     next 
                     
                     //Aplica o Filtro 
@@ -1099,11 +1103,15 @@ WSMETHOD PUT WSSERVICE dicFileCreate
 
                     // MONTA O FILTRO PODE PASSAR MAIS DE UM INDICE
                     for nX := 1 to len(oRequest:estrutura)
-                        if nX == len(oRequest:estrutura)
-                            cFilter += "INDICE == '" + PadR(oRequest:estrutura[nX],03,'') + "' "
-                        else
-                            cFilter += "INDICE == '" + PadR(oRequest:estrutura[nX],03,'') + "' .OR. "
-                        endif
+
+                        // Só adiciona no filtro, nas posicoes impares/principais/INDICE
+                        If Mod(nX,2) != 0
+                            if nX + 1 == len(oRequest:estrutura)
+                                cFilter += "INDICE == '" + PadR(oRequest:estrutura[nX],03,'') + "' .AND. ORDEM == '" + StrZero( Val(oRequest:estrutura[nX+1]), 1) + "' "
+                            else
+                                cFilter += "INDICE == '" + PadR(oRequest:estrutura[nX],03,'') + "' .AND. ORDEM == '" + StrZero( Val(oRequest:estrutura[nX+1]), 1) + "' .OR. "
+                            endif
+                        EndIf
                     next 
                     
                     //Aplica o Filtro
