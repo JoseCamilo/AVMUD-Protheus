@@ -1362,6 +1362,8 @@ WSMETHOD GET  WSRECEIVE Tabela, Empresa WSSERVICE NomeCampos
     Local aCampos   := {}
     Local oJson     := JsonUtil():New()
     Local cBkpEmp       := If(Valtype(cEmpAnt)=="C",cEmpAnt,"")
+    Local cError := ""
+    Local oError := ErrorBlock({|e| cError := e:Description})
 
     If Empty(Self:Tabela)
         SetRestFault(400, "Tabela não informada")        
@@ -2309,6 +2311,35 @@ WSMETHOD GET WSSERVICE LoadEmp
 
     oJson:PutVal("result", lRet)
     oJson:PutVal("msg","Empresas do ambiente")
+    oJson:PutVal("obj", aObj)
+
+    Self:SetResponse( oJson:ToJson() )  
+
+Return lRet
+
+/*/{Protheus.doc} rootpath
+Retorna o diretório raiz rootpath
+@author marllon.fernandes
+@since 19/11/2017
+@wsmethod rootpath
+@verbo GET
+@receiver
+@return logico + mensagem
+/*/
+WSRESTFUL rootpath DESCRIPTION "Retorna o diretório raiz rootpath" FORMAT "application/json"
+    WSMETHOD GET  DESCRIPTION "Retorna o diretório raiz rootpath" 	PRODUCES APPLICATION_JSON
+END WSRESTFUL
+
+WSMETHOD GET WSSERVICE rootpath
+
+    Local lRet      := .T.
+    Local oJson     := JsonUtil():New()
+    Local aObj      := {}
+    Local cCaminho  := strTran(GetSrvProfString("ROOTPATH",""),'\','/')
+
+    oJson:PutVal("result", iif( empty(alltrim(cCaminho)), .F., .T. ))
+    oJson:PutVal("msg","ok")
+    oJson:PutVal("rootpath", cCaminho )
     oJson:PutVal("obj", aObj)
 
     Self:SetResponse( oJson:ToJson() )  
