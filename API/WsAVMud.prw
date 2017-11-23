@@ -507,9 +507,11 @@ Local nI := 0
 aArquivos := u_TListArqTFS(cCollection,cChangeSet)
 
 If Len(aArquivos) > 0
+
+    aData := U_TDataArqTFS(aArquivos[nI],cCollection,cChangeSet)
+    
     For nI:=1 to Len(aArquivos)
 
-        aData := U_TDataArqTFS(aArquivos[nI],cCollection,cChangeSet)
         aFonte := StrTokArr(aArquivos[nI],"/")
         cFonte := aFonte[len(aFonte)]
         
