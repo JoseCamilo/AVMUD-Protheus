@@ -502,7 +502,7 @@ Local aData := {}
 Local cFonte
 Local aFonte
 Local aArquivos := {}
-Local nI := 0
+Local nI := 1
 
 aArquivos := u_TListArqTFS(cCollection,cChangeSet)
 
