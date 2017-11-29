@@ -1063,19 +1063,28 @@ WSMETHOD PUT WSSERVICE dicFileCreate
 
                 case upper( allTrim( oRequest:tipo ) ) == 'SX7'
 
-                    // MONTA O FILTRO PODE PASSAR MAIS DE GATILHO
-                    for nX := 1 to len(oRequest:estrutura)
+                    nPos := aScan(oRequest:estrutura,{|x| '*' $ (x) })
 
-                        // Só adiciona no filtro, nas posicoes impares/principais/X7_CAMPO
-                        If Mod(nX,2) != 0
-                            if nX + 1 == len(oRequest:estrutura)
-                                cFilter += "X7_CAMPO == '" + PadR(oRequest:estrutura[nX],10,'') + "' .AND. X7_SEQUENC == '" + oRequest:estrutura[nX+1] + "' "
-                            else
-                                cFilter += "X7_CAMPO == '" + PadR(oRequest:estrutura[nX],10,'') + "' .AND. X7_SEQUENC == '" + oRequest:estrutura[nX+1] + "' .OR. "
-                            endif
-                        EndIf
-                    next 
+                    if nPos > 0
+                        cFilter := "X7_CAMPO == '" + left(oRequest:estrutura[nPos], Len(oRequest:estrutura[nPos])-1) + "' " 
+                    else
+
+                        // MONTA O FILTRO PODE PASSAR MAIS DE GATILHO
+                        for nX := 1 to len(oRequest:estrutura)
+
+                            // Só adiciona no filtro, nas posicoes impares/principais/X7_CAMPO
+                            If Mod(nX,2) != 0
+                                if nX + 1 == len(oRequest:estrutura)
+                                    cFilter += "X7_CAMPO == '" + PadR(oRequest:estrutura[nX],10,'') + "' .AND. X7_SEQUENC == '" + oRequest:estrutura[nX+1] + "' "
+                                else
+                                    cFilter += "X7_CAMPO == '" + PadR(oRequest:estrutura[nX],10,'') + "' .AND. X7_SEQUENC == '" + oRequest:estrutura[nX+1] + "' .OR. "
+                                endif
+                            EndIf
+                        next
+                    EndIf 
                     
+                    conout(cFilter)
+
                     //Aplica o Filtro 
                     dbSelectArea('SX7')
                     SX7->( dbSetFilter({|| &cFilter},cFilter) )
@@ -1103,19 +1112,27 @@ WSMETHOD PUT WSSERVICE dicFileCreate
 
                 case upper( allTrim( oRequest:tipo ) ) == 'SIX'
 
-                    // MONTA O FILTRO PODE PASSAR MAIS DE UM INDICE
-                    for nX := 1 to len(oRequest:estrutura)
+                    nPos := aScan(oRequest:estrutura,{|x| '*' $ (x) })
 
-                        // Só adiciona no filtro, nas posicoes impares/principais/INDICE
-                        If Mod(nX,2) != 0
-                            if nX + 1 == len(oRequest:estrutura)
-                                cFilter += "INDICE == '" + PadR(oRequest:estrutura[nX],03,'') + "' .AND. ORDEM == '" + oRequest:estrutura[nX+1] + "' "
-                            else
-                                cFilter += "INDICE == '" + PadR(oRequest:estrutura[nX],03,'') + "' .AND. ORDEM == '" + oRequest:estrutura[nX+1] + "' .OR. "
-                            endif
-                        EndIf
-                    next 
+                    if nPos > 0
+                        cFilter := "INDICE == '" + left(oRequest:estrutura[nPos],3) + "' " 
+                    else
+
+                        // MONTA O FILTRO PODE PASSAR MAIS DE UM INDICE
+                        for nX := 1 to len(oRequest:estrutura)
+
+                            // Só adiciona no filtro, nas posicoes impares/principais/INDICE
+                            If Mod(nX,2) != 0
+                                if nX + 1 == len(oRequest:estrutura)
+                                    cFilter += "INDICE == '" + PadR(oRequest:estrutura[nX],03,'') + "' .AND. ORDEM == '" + oRequest:estrutura[nX+1] + "' "
+                                else
+                                    cFilter += "INDICE == '" + PadR(oRequest:estrutura[nX],03,'') + "' .AND. ORDEM == '" + oRequest:estrutura[nX+1] + "' .OR. "
+                                endif
+                            EndIf
+                        next 
+                    EndIf
                     
+                    conout(cFilter)
                     //Aplica o Filtro
                     dbSelectArea('SIX')
                     SIX->( dbSetFilter({|| &cFilter},cFilter) )
