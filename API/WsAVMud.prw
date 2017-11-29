@@ -1019,22 +1019,30 @@ WSMETHOD PUT WSSERVICE dicFileCreate
 
                 case upper( allTrim( oRequest:tipo ) ) == 'SX3'
 
-                    nPos := aScan(oRequest:estrutura,{|x| '*' $ (x) })
+                                    
+                    // MONTA O FILTRO PODE PASSAR MAIS DE CAMPO
+                    for nX := 1 to len(oRequest:estrutura)
 
-                    if nPos > 0
-                        cFilter := "X3_ARQUIVO == '" + left(oRequest:estrutura[nPos],3) + "' " 
-                    else
-                    
-                        // MONTA O FILTRO PODE PASSAR MAIS DE CAMPO
-                        for nX := 1 to len(oRequest:estrutura)
+                        lAll := '*' $ oRequest:estrutura[nX]
+
+                        if lAll
+                             if nX == len(oRequest:estrutura)
+                                cFilter += "X3_ARQUIVO == '" + left(oRequest:estrutura[nX],3) + "' "
+                            else
+                                cFilter += "X3_ARQUIVO == '" + left(oRequest:estrutura[nX],3) + "' .OR. "
+                            endif
                             
+                        else
+                        
                             if nX == len(oRequest:estrutura)
                                 cFilter += "X3_CAMPO == '" + PadR(oRequest:estrutura[nX],10,'') + "' "
                             else
                                 cFilter += "X3_CAMPO == '" + PadR(oRequest:estrutura[nX],10,'')  + "' .OR. "
                             endif
-                        next 
-                    endif
+                        EndIf
+                    next 
+                    
+                    conout(cFilter)
                     
                     //Aplica o Filtro 
                     dbSelectArea('SX3')
