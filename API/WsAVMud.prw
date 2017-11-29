@@ -1069,9 +1069,9 @@ WSMETHOD PUT WSSERVICE dicFileCreate
                         // Só adiciona no filtro, nas posicoes impares/principais/X7_CAMPO
                         If Mod(nX,2) != 0
                             if nX + 1 == len(oRequest:estrutura)
-                                cFilter += "X7_CAMPO == '" + PadR(oRequest:estrutura[nX],10,'') + "' .AND. X7_SEQUENC == '" + StrZero( Val(oRequest:estrutura[nX+1]), 3) + "' "
+                                cFilter += "X7_CAMPO == '" + PadR(oRequest:estrutura[nX],10,'') + "' .AND. X7_SEQUENC == '" + oRequest:estrutura[nX+1] + "' "
                             else
-                                cFilter += "X7_CAMPO == '" + PadR(oRequest:estrutura[nX],10,'') + "' .AND. X7_SEQUENC == '" + StrZero( Val(oRequest:estrutura[nX+1]), 3) + "' .OR. "
+                                cFilter += "X7_CAMPO == '" + PadR(oRequest:estrutura[nX],10,'') + "' .AND. X7_SEQUENC == '" + oRequest:estrutura[nX+1] + "' .OR. "
                             endif
                         EndIf
                     next 
@@ -1109,9 +1109,9 @@ WSMETHOD PUT WSSERVICE dicFileCreate
                         // Só adiciona no filtro, nas posicoes impares/principais/INDICE
                         If Mod(nX,2) != 0
                             if nX + 1 == len(oRequest:estrutura)
-                                cFilter += "INDICE == '" + PadR(oRequest:estrutura[nX],03,'') + "' .AND. ORDEM == '" + StrZero( Val(oRequest:estrutura[nX+1]), 1) + "' "
+                                cFilter += "INDICE == '" + PadR(oRequest:estrutura[nX],03,'') + "' .AND. ORDEM == '" + oRequest:estrutura[nX+1] + "' "
                             else
-                                cFilter += "INDICE == '" + PadR(oRequest:estrutura[nX],03,'') + "' .AND. ORDEM == '" + StrZero( Val(oRequest:estrutura[nX+1]), 1) + "' .OR. "
+                                cFilter += "INDICE == '" + PadR(oRequest:estrutura[nX],03,'') + "' .AND. ORDEM == '" + oRequest:estrutura[nX+1] + "' .OR. "
                             endif
                         EndIf
                     next 
