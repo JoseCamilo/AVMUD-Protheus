@@ -1042,8 +1042,6 @@ WSMETHOD PUT WSSERVICE dicFileCreate
                         EndIf
                     next 
                     
-                    conout(cFilter)
-                    
                     //Aplica o Filtro 
                     dbSelectArea('SX3')
                     SX3->( dbSetFilter({|| &cFilter},cFilter) )
@@ -1090,8 +1088,6 @@ WSMETHOD PUT WSSERVICE dicFileCreate
                             EndIf
                         next
                     EndIf 
-                    
-                    conout(cFilter)
 
                     //Aplica o Filtro 
                     dbSelectArea('SX7')
@@ -1140,7 +1136,6 @@ WSMETHOD PUT WSSERVICE dicFileCreate
                         next 
                     EndIf
                     
-                    conout(cFilter)
                     //Aplica o Filtro
                     dbSelectArea('SIX')
                     SIX->( dbSetFilter({|| &cFilter},cFilter) )
